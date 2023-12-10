@@ -5,3 +5,4 @@ function getTimeStamp() {
 }
 
 module.exports = getTimeStamp;
+
