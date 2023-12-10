@@ -24,5 +24,5 @@ const app = express();
 // add router to express app
 app.use("/", router);
 
-// listen on port 3000
-app.listen(8080, () => console.log("Listening on port 3000!"));
+// listen on port 8080
+app.listen(8080, () => console.log("Listening on port 8080!"));
