@@ -98,5 +98,4 @@ async function run() {
   // console.log done
   console.log("Done");
 }
-
-run();
+module.exports = run;

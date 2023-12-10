@@ -99,4 +99,4 @@ async function run() {
   console.log("Done");
 }
 
-run();
+module.exports = run;
