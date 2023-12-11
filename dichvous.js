@@ -35,8 +35,7 @@ async function run() {
       // connect to proxy using socks5
       args: [`--proxy-server=socks5://${ip}:${port}`],
       // use brave browser instead of chrome mac
-      executablePath:
-        "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+       executablePath: '/usr/bin/google-chrome',
     });
     const page = await browser.newPage();
     // page.authenticate({

@@ -28,8 +28,7 @@ async function run() {
     const browser = await puppeteer.launch({
       headless: true,
       args: [`--proxy-server=${newProxy}`],
-      executablePath:
-        "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+       executablePath: '/usr/bin/google-chrome',
     });
     const page = await browser.newPage();
     // page.authenticate({
