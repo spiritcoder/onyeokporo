@@ -2,9 +2,10 @@ const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const randomUseragent = require("random-useragent");
 var fs = require("fs");
-const getTimeStamp = require("./utility");
-const loglogo = require("./loglogo");
 const proxyChain = require("proxy-chain");
+const getTimeStamp = require("../utils/timestamp");
+const loglogo = require("../utils/loglogo");
+const getRandomReferral = require("../utils/referral");
 
 puppeteer.use(StealthPlugin());
 
@@ -56,22 +57,19 @@ async function clickRandomLink(page) {
   const currentURL = page.url();
   try {
     await Promise.all([page.waitForNavigation(), randomLink.click()]);
-    await new Promise((resolve) => setTimeout(resolve, 10000)); // wait for 10 seconds
+    await new Promise((resolve) => setTimeout(resolve, 10000));
     if (!page.isClosed()) {
-      await page.goto(currentURL); // Navigate back to the previous URL
+      await page.goto(currentURL);
     }
   } catch (error) {
     console.error("Error clicking the random link:", error);
   }
 }
 
-async function run() {
+async function run(url) {
   loglogo();
   // await Promise.all([pullProxies()]);
-
-  const referrals = fs.readFileSync("./referrals.txt", "utf-8").split("\n");
-
-  var text = fs.readFileSync("./http.txt").toString("utf-8");
+  var text = fs.readFileSync(__dirname + "/../proxies/http.txt", "utf-8");
   var proxies = text.split("\n");
 
   for (const proxy of proxies) {
@@ -84,7 +82,7 @@ async function run() {
     const browser = await puppeteer.launch({
       headless: false,
       args: [`--proxy-server=${newProxy}`],
-       executablePath: '/usr/bin/google-chrome',
+      executablePath: "/usr/bin/google-chrome",
     });
     const page = await browser.newPage();
     page.authenticate({
@@ -92,22 +90,16 @@ async function run() {
       password: "4uehmxjw6d0h",
     });
     try {
-      const referer = referrals[Math.floor(Math.random() * referrals.length)];
-
       for (let i = 0; i <= 10; i++) {
         await page.setUserAgent(randomUseragent.getRandom());
         await page.setExtraHTTPHeaders({
-          referer,
+          referer: getRandomReferral(),
           waitUntil: "domcontentloaded",
         });
-        // await page.goto("https://entclassblog.com/");
-        // await page.goto("https://moneywisehacks.com/");
-        // await page.goto("https://foreviral.com/");
-        await page.goto("https://yo.fan/moneywisehacks");
-        // await page.goto("https://whoer.com/");
+        await page.goto(url);
+
         await scrollToBottom(page);
         await scrollToTop(page);
-        // await clickAd(page);
         await clickRandomLink(page);
         await clickRandomLink(page);
 
@@ -118,7 +110,6 @@ async function run() {
 
         await clickRandomLink(page);
         await clickRandomLink(page);
-        // await clickRandomLinkAndAd(page);
         await clickRandomLink(page);
         await clickRandomLink(page);
         await clickRandomLink(page);
@@ -138,9 +129,7 @@ async function run() {
     await browser.close();
   }
 
-  // console.log done
   console.log("Done");
 }
 
-// Call the run function
 run();

@@ -1,6 +1,6 @@
 const fetch = require("node-fetch");
 const fs = require("fs");
-const getTimeStamp = require("./utility");
+const getTimeStamp = require("../utils/timestamp");
 
 async function scrollToBottom(page) {
   await page.evaluate(async () => {
@@ -53,18 +53,15 @@ async function clickAd(page) {
 
     if (googleAdsFrames.length > 0) {
       try {
-        // choose a random frame from the list of Google Ads frames
         const randomIndex = Math.floor(Math.random() * googleAdsFrames.length);
         const adFrame = googleAdsFrames[randomIndex];
-        // await adFrame.waitForNavigation({ waitUntil: 'domcontentloaded' });
 
-        const adLinks = (await adFrame.$$("a"));
+        const adLinks = await adFrame.$$("a");
 
         if (adLinks.length > 0) {
           const randomIndex = Math.floor(Math.random() * adLinks.length);
           const randomAdLink = adLinks[randomIndex];
 
-          // Evaluate and extract the href attribute of the ad link
           const href = await adFrame.evaluate(
             (element) => element.getAttribute("href"),
             randomAdLink
@@ -78,7 +75,7 @@ async function clickAd(page) {
             await scrollToBottom(page);
             await page.waitForTimeout(5000);
 
-            await page.goBack(); // Go back to the previous page after interaction
+            await page.goBack();
           } else {
             console.log(
               `${getTimeStamp()} Failed to extract the href attribute of the ad link...`
@@ -211,14 +208,11 @@ async function clickRandomLinkAndAd(page) {
 async function pullProxies() {
   const result = await fetch(
     "https://proxy.webshare.io/api/v2/proxy/list/download/jbfgpfizydmoybwscihvvdcdonmkjkukkdowtthk/-/any/username/direct/-/",
-    // the response is a txt file
     { headers: { "Content-Type": "text/plain" } }
   );
 
-  // get the response body as a string
   const body = await result.text();
 
-  // body has 64.137.31.242:6856:vfrkigib:4uehmxjw6d0h remove the laast two contents
   const bodyArray = body.split("\n");
   let proxies = [];
   for (const proxy of bodyArray) {
@@ -227,7 +221,6 @@ async function pullProxies() {
     proxies.push(ip + ":" + port);
   }
 
-  // save to http.txt
   fs.writeFileSync("./http.txt", proxies.join("\n"), function (err) {
     if (err)
       return console.log(`${getTimeStamp()} Error saving proxies: ${err}`);
@@ -235,7 +228,13 @@ async function pullProxies() {
   });
 }
 
-// export all functions
+function addHttpsToUrl(url) {
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    return "https://" + url;
+  }
+  return url;
+}
+
 module.exports = {
   clickRandomLink,
   clickRandomLinkAndAd,
@@ -243,4 +242,5 @@ module.exports = {
   scrollToTop,
   pullProxies,
   clickAd,
+  addHttpsToUrl,
 };
