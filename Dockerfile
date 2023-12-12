@@ -1,6 +1,5 @@
 FROM node:16-slim
 
-# Install necessary dependencies
 RUN apt-get update \
     && apt-get install -y wget gnupg2 \
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
@@ -15,6 +14,8 @@ WORKDIR /app
 
 COPY package*.json .
 RUN npm install
+
+EXPOSE 8080
 
 COPY . .
 

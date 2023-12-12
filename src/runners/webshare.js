@@ -11,49 +11,47 @@ const {
   clickAd,
   pullProxies,
   clickRandomLinkAndAd,
-} = require("./functions");
-const loglogo = require("./loglogo");
-const getTimeStamp = require("./utility");
+} = require("../utils/functions");
+const loglogo = require("../utils/loglogo");
+const getTimeStamp = require("../utils/timestamp");
+const getRandomReferral = require("../utils/referral");
 
 puppeteer.use(StealthPlugin());
 
-async function run() {
+async function run(url) {
   loglogo();
-
   // await Promise.all([pullProxies()]);
 
-  const referrals = fs.readFileSync("./referrals.txt", "utf-8").split("\n");
-
-  var text = fs.readFileSync("./httpsocks.txt").toString("utf-8");
+  var text = fs.readFileSync(__dirname + "/../proxies/http.txt", "utf-8");
   var proxies = text.split("\n");
 
   for (const proxy of proxies) {
     const ip = proxy.split(":")[0];
     const port = proxy.split(":")[1];
+
+    const newProxy = await proxyChain.anonymizeProxy(
+      "http://" + ip + ":" + port
+    );
     const browser = await puppeteer.launch({
       headless: true,
-      // connect to proxy using socks5
-      args: [`--proxy-server=socks5://${ip}:${port}`],
-      // use brave browser instead of chrome mac
+      args: [`--proxy-server=${newProxy}`],
        executablePath: '/usr/bin/google-chrome',
     });
     const page = await browser.newPage();
-    // page.authenticate({
-    //   username: "vfrkigib",
-    //   password: "4uehmxjw6d0h",
-    // });
+    page.authenticate({
+      username: "vfrkigib",
+      password: "4uehmxjw6d0h",
+    });
     try {
-      const referer = referrals[Math.floor(Math.random() * referrals.length)];
 
-      await page.setUserAgent(randomUseragent.getRandom());
-      await page.setExtraHTTPHeaders({
-        referer,
-        waitUntil: "domcontentloaded",
-      });
-      // await page.goto("https://entclassblog.com/");
-      await page.goto("https://foreviral.com/");
+      for (let i = 1; i < 3; i++) {
+        await page.setUserAgent(randomUseragent.getRandom());
+        await page.setExtraHTTPHeaders({
+          referer: getRandomReferral(),
+          waitUntil: "domcontentloaded",
+        });
+        await page.goto(url);
 
-      for (let i = 0; i <= 5; i++) {
         await scrollToBottom(page);
         await scrollToTop(page);
         await clickAd(page);
@@ -67,9 +65,15 @@ async function run() {
 
         await clickRandomLink(page);
         await clickRandomLink(page);
+        await clickRandomLinkAndAd(page);
+        await clickRandomLink(page);
+        await clickRandomLink(page);
+        await clickRandomLink(page);
 
         await clickRandomLink(page);
-        await clickRandomLinkAndAd(page);
+        await clickRandomLink(page);
+        await clickRandomLink(page);
+        await clickRandomLink(page);
         await clickRandomLink(page);
         await clickRandomLink(page);
 
@@ -84,7 +88,6 @@ async function run() {
     await browser.close();
   }
 
-  // console.log done
   console.log("Done");
 }
 
