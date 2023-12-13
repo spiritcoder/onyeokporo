@@ -30,11 +30,11 @@ async function run(url) {
     const port = proxy.split(":")[1];
     const browser = await puppeteer.launch({
       headless: true,
-      args: [`--proxy-server=socks5://${ip}:${port}`],
+      args: [`--proxy-server=socks5://${ip}:${port}`,  "--no-sandbox"],
+      executablePath: '/usr/bin/google-chrome',
     });
     const page = await browser.newPage();
     try {
-
       await page.setUserAgent(randomUseragent.getRandom());
       await page.setExtraHTTPHeaders({
         referer: getRandomReferral(),
