@@ -81,7 +81,7 @@ async function run(url) {
     );
     const browser = await puppeteer.launch({
       headless: false,
-      args: [`--proxy-server=${newProxy}`],
+      args: [`--proxy-server=${newProxy}`, "--no-sandbox"],
       executablePath: "/usr/bin/google-chrome",
     });
     const page = await browser.newPage();
