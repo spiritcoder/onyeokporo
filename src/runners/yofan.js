@@ -7,6 +7,8 @@ const getTimeStamp = require("../utils/timestamp");
 const loglogo = require("../utils/loglogo");
 const getRandomReferral = require("../utils/referral");
 
+const {shuffleIPs} = require("../utils/functions")
+
 puppeteer.use(StealthPlugin());
 
 async function scrollToTop(page) {
@@ -71,6 +73,8 @@ async function run(url) {
   // await Promise.all([pullProxies()]);
   var text = fs.readFileSync(__dirname + "/../proxies/http.txt", "utf-8");
   var proxies = text.split("\n");
+  // shuffle proxies
+  proxies = shuffleIPs(proxies);
 
   for (const proxy of proxies) {
     const ip = proxy.split(":")[0];
@@ -81,8 +85,17 @@ async function run(url) {
     );
     const browser = await puppeteer.launch({
       headless: false,
-      args: [`--proxy-server=${newProxy}`, "--no-sandbox"],
-      executablePath: "/usr/bin/google-chrome",
+      args: [
+        `--proxy-server=${newProxy}`,
+        "--no-sandbox",
+        "--disable-web-security",
+        "--disable-features=IsolateOrigins",
+        "--disable-site-isolation-trials",
+        "--disable-infobars",
+        "--disable-gpu",
+        "--disable-software-rasterizer",
+      ],
+      // executablePath: "/usr/bin/google-chrome",
     });
     const page = await browser.newPage();
     page.authenticate({
@@ -91,9 +104,10 @@ async function run(url) {
     });
     try {
       for (let i = 0; i <= 10; i++) {
+        const referer = getRandomReferral();
         await page.setUserAgent(randomUseragent.getRandom());
         await page.setExtraHTTPHeaders({
-          referer: getRandomReferral(),
+          referer,
           waitUntil: "domcontentloaded",
         });
         await page.goto(url);
@@ -132,4 +146,4 @@ async function run(url) {
   console.log("Done");
 }
 
-run();
+run('https://yo.fan/moneywisehacks');

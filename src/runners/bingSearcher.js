@@ -1,16 +1,21 @@
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const randomUseragent = require("random-useragent");
-const proxyChain = require("proxy-chain");
 var fs = require("fs");
-const getTimeStamp = require("../utils/timestamp");
-const loglogo = require("../utils/loglogo");
+const proxyChain = require("proxy-chain");
+
 const {
-  scrollToTop,
   scrollToBottom,
+  scrollToTop,
   clickRandomLink,
+  clickAd,
   shuffleIPs,
+  pullProxies,
+  clickRandomLinkAndAd,
+  searchBing,
 } = require("../utils/functions");
+const loglogo = require("../utils/loglogo");
+const getTimeStamp = require("../utils/timestamp");
 const getRandomReferral = require("../utils/referral");
 
 puppeteer.use(StealthPlugin());
@@ -20,7 +25,6 @@ async function run(url) {
   // await Promise.all([pullProxies()]);
 
   var text = fs.readFileSync(__dirname + "/../proxies/http.txt", "utf-8");
-
   var proxies = text.split("\n");
   // shuffle proxies
   proxies = shuffleIPs(proxies);
@@ -33,18 +37,8 @@ async function run(url) {
       "http://" + ip + ":" + port
     );
     const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        `--proxy-server=${newProxy}`,
-        "--no-sandbox",
-        "--disable-web-security",
-        "--disable-features=IsolateOrigins",
-        "--disable-site-isolation-trials",
-        "--disable-infobars",
-        "--disable-gpu",
-        "--disable-software-rasterizer",
-      ],
-      executablePath: "/usr/bin/google-chrome",
+      headless: false,
+      args: [`--proxy-server=${newProxy}`, "--no-sandbox"],
     });
     const page = await browser.newPage();
     page.authenticate({
@@ -52,44 +46,27 @@ async function run(url) {
       password: "4uehmxjw6d0h",
     });
     try {
-      for (let i = 0; i <= 10; i++) {
+      for (let i = 1; i < 3; i++) {
         const referer = getRandomReferral();
         await page.setUserAgent(randomUseragent.getRandom());
         await page.setExtraHTTPHeaders({
           referer,
           waitUntil: "domcontentloaded",
         });
-        await page.goto(url);
 
-        await scrollToBottom(page);
-        await scrollToTop(page);
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-
-        await clickRandomLink(page);
-        await clickRandomLink(page);
-        await clickRandomLink(page);
+        // get the bing keywords from the file and search them
+        var keywords = fs.readFileSync(
+          __dirname + "/../keywords/bing.txt",
+          "utf-8"
+        );
+        var searchTerms = keywords.split("\n");
+          console.log(searchTerms)
+        for (const searchTerm of searchTerms) {
+          await searchBing(page, searchTerm, url);
+          await clickRandomLink(page);
+          await clickRandomLink(page);
+          await clickRandomLink(page);
+        }
 
         console.log(`${getTimeStamp()} Done ${i} times `);
       }
@@ -105,4 +82,4 @@ async function run(url) {
   console.log("Done");
 }
 
-run();
+module.exports = run;

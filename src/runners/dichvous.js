@@ -10,6 +10,7 @@ const {
   clickAd,
   pullProxies,
   clickRandomLinkAndAd,
+  shuffleIPs,
 } = require("../utils/functions");
 const loglogo = require("../utils/loglogo");
 const getTimeStamp = require("../utils/timestamp");
@@ -25,19 +26,31 @@ async function run(url) {
 
   var proxies = text.split("\n");
 
+  // shuffle proxies
+  proxies = shuffleIPs(proxies);
+
   for (const proxy of proxies) {
+    const referer = getRandomReferral();
     const ip = proxy.split(":")[0];
     const port = proxy.split(":")[1];
     const browser = await puppeteer.launch({
       headless: true,
-      args: [`--proxy-server=socks5://${ip}:${port}`,  "--no-sandbox"],
-      executablePath: '/usr/bin/google-chrome',
+      args: [
+        `--proxy-server=socks5://${ip}:${port}`,
+        "--no-sandbox",
+        "--disable-web-security",
+        "--disable-features=IsolateOrigins",
+        "--disable-site-isolation-trials",
+        "--disable-infobars",
+        "--disable-gpu",
+        "--disable-software-rasterizer",
+      ],
     });
     const page = await browser.newPage();
     try {
       await page.setUserAgent(randomUseragent.getRandom());
       await page.setExtraHTTPHeaders({
-        referer: getRandomReferral(),
+        referer,
         waitUntil: "domcontentloaded",
       });
       await page.goto(url);

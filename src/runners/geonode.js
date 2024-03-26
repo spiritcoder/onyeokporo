@@ -69,7 +69,6 @@ async function run(
         "--start-maximized",
         `--timezone=${timezone}`,
       ],
-      // executablePath: '/usr/bin/google-chrome',
     });
     const page = await browser.newPage();
     page.authenticate({
@@ -78,7 +77,7 @@ async function run(
     });
 
     try {
-      for (let i = 1; i <= 2; i++) {
+      for (let i = 1; i < 5; i++) {
         const referer = getRandomReferral(trafficSource);
         console.log(
           "\x1b[32m%s\x1b[0m",
