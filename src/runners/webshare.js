@@ -13,6 +13,7 @@ const loglogo = require("../utils/loglogo");
 const getTimeStamp = require("../utils/timestamp");
 const getRandomReferral = require("../utils/referral");
 const getProxies = require("../utils/proxies.js");
+const getRandomAgent = require("../utils/randomAgent.js")
 
 puppeteer.use(StealthPlugin());
 
@@ -21,7 +22,8 @@ async function run(
   region,
   randomClicks = 10,
   numAdClicks = 1,
-  trafficSource
+  trafficSource,
+  deviceType
 ) {
   loglogo();
 
@@ -36,7 +38,12 @@ async function run(
   );
   console.log(
     "\x1b[32m%s\x1b[0m",
-    `${getTimeStamp()} And ${numAdClicks} ad clicks`
+    `${getTimeStamp()}, ${numAdClicks} ad clicks`
+  );
+
+  console.log(
+    "\x1b[32m%s\x1b[0m",
+    `${getTimeStamp()}, And ${deviceType} devices`
   );
   let regionProxies = await getProxies(region);
 
@@ -84,7 +91,7 @@ async function run(
           "\x1b[32m%s\x1b[0m",
           `${getTimeStamp()} Running the agent with ${referer} as referer`
         );
-        const userAgent = randomUseragent.getRandom();
+        const userAgent = getRandomAgent(deviceType);
         await page.setUserAgent(userAgent);
         await page.emulateTimezone(timezone);
 

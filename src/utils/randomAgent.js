@@ -1,13 +1,16 @@
 const userAgent = require("user-agents");
 
 function getRandomAgent(type = "mobile") {
-
-   const agent = new userAgent({
-      deviceCategory: type
-   });
-   
-    return agent.toString();
+  let device;
+  if (type == "all") {
+    device = {};
+  } else {
+    device = {
+      deviceCategory: type,
+    };
+  }
+  const agent = new userAgent(device);
+  return agent.toString();
 }
-
 
 module.exports = getRandomAgent;

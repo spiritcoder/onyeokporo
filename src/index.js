@@ -27,7 +27,8 @@ router.get("/run-webshare", async (req, res) => {
   const randomClicks = req.query.randomClicks;
   const numAdClicks = req.query.numAdClicks;
   const trafficSource = req.query.trafficSource;
-  webshareRunner(addHttpsToUrl(url), region, randomClicks, numAdClicks, trafficSource);
+  const deviceType = req.query.deviceType;
+  webshareRunner(addHttpsToUrl(url), region, randomClicks, numAdClicks, trafficSource, deviceType);
   res.send(`Running: ${url} on webshare`);
 });
 
