@@ -221,7 +221,6 @@ async function clickRandomLinkAndAd(page) {
         await page.waitForTimeout(10000);
         await scrollToBottom(page);
         await clickAd(page);
-        await clickAd(page);
         if (!page.isClosed()) {
           await page.goBack();
         }

@@ -2,6 +2,7 @@ const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const randomUseragent = require("random-useragent");
 const proxyChain = require("proxy-chain");
+const fs = require('fs');
 
 const {
   scrollToBottom,
@@ -15,18 +16,22 @@ const getRandomReferral = require("../utils/referral");
 const getProxies = require("../utils/proxies.js");
 const getGeonodeIP = require("../utils/geonode.js");
 const axios = require("axios");
+const fetch = require("node-fetch");
+const HttpsProxyAgent = require("https-proxy-agent");
+
+const dns = require('dns')
 
 puppeteer.use(StealthPlugin());
 
 async function run(url, countryCode) {
-  const ip_port = "148.251.5.30:10000";
-  const ip = ip_port.split(":")[0];
-  const port = ip_port.split(":")[1];
+  let proxy = await getProxies('dataimpulse_uk')
+  proxy = proxy[0]
+  console.log(proxy)
 
-  const newProxy = await proxyChain.anonymizeProxy( "http://" + ip + ":" + port);
+  const newProxy = await proxyChain.anonymizeProxy( "http://" + proxy + ":80");
 
   // // get the timezone of the IP
-  const timezone = await getTimezoneByIP(ip);
+  const timezone = await getTimezoneByIP(proxy);
   console.log(
     "\x1b[32m%s\x1b[0m",
     `${getTimeStamp()} Got timezone ${timezone}`
@@ -57,4 +62,4 @@ async function run(url, countryCode) {
   await page.goto(url);
 }
 
-run("https://whoer.net", "ng");
+run("https://google.com", "ng");
