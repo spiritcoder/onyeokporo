@@ -168,6 +168,7 @@ async function clickRandomLink(page) {
         if (!page.isClosed()) {
           await page.goBack();
         }
+        await scrollToTop(page);
         console.log(
           "\x1b[32m%s\x1b[0m",
           `${getTimeStamp()} Clicked on a random link: ${randomLink}`
@@ -224,6 +225,7 @@ async function clickRandomLinkAndAd(page) {
         if (!page.isClosed()) {
           await page.goBack();
         }
+        await scrollToTop(page);
         console.log(
           "\x1b[32m%s\x1b[0m",
           `${getTimeStamp()} Clicked on a random link: ${randomLink}`
