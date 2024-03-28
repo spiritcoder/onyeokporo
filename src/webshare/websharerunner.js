@@ -1,6 +1,5 @@
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
-const randomUseragent = require("random-useragent");
 const proxyChain = require("proxy-chain");
 
 const {
@@ -86,7 +85,7 @@ async function run(
       });
 
       try {
-        for (let i = 1; i <= 2; i++) {
+        for (let i = 1; i = 2; i++) {
           const referer = getRandomReferral(trafficSource);
           console.log(
             "\x1b[32m%s\x1b[0m",

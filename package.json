@@ -16,7 +16,7 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "random-seed": "^0.3.0",
     "random-useragent": "^0.5.0",
-    "user-agents": "^1.1.53",
+    "user-agents": "^2.0.0-alpha.154",
     "winston": "^3.12.0"
   },
   "scripts": {
