@@ -4,6 +4,7 @@ const router = express.Router();
 
 const webshareRunner = require("./webshare/websharerunner");
 const axleRunner = require("./axle/axlerunner");
+const nodemavenRunner = require("./nodemaven/nodemavenrunner");
 
 const { addHttpsToUrl } = require("./utils/functions");
 const getTimeStamp = require("./utils/timestamp");
@@ -29,8 +30,17 @@ router.get("/run", async (req, res) => {
       trafficSource,
       deviceType
     );
-  } else {
+  } else if (channel == "webshare") {
     webshareRunner(
+      addHttpsToUrl(url),
+      region,
+      randomClicks,
+      numAdClicks,
+      trafficSource,
+      deviceType
+    );
+  }else {
+    nodemavenRunner(
       addHttpsToUrl(url),
       region,
       randomClicks,
@@ -44,6 +54,6 @@ router.get("/run", async (req, res) => {
 
 app.use("/", router);
 
-app.listen(8080, () =>
-  console.log("\x1b[32m%s\x1b[0m", `${getTimeStamp()} Listening on port 8080!`)
+app.listen(8081, () =>
+  console.log("\x1b[32m%s\x1b[0m", `${getTimeStamp()} Listening on port 8081!`)
 );

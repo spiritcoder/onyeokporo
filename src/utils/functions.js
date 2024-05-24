@@ -1,7 +1,10 @@
 const fetch = require("node-fetch");
 const fs = require("fs");
-const axios = require('axios');
+const axios = require("axios");
 const getTimeStamp = require("../utils/timestamp");
+const geoip = require("geoip-lite");
+const ProxyAgent = require("proxy-agent");
+const tz = require("timezone-support");
 
 const getRandomInterval = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -12,7 +15,7 @@ async function scrollToBottom(page) {
     await new Promise((resolve, reject) => {
       var totalHeight = 0;
       var distance = 100;
-      const intervalTime = getRandomInterval(200, 500)
+      const intervalTime = getRandomInterval(200, 500);
       var timer = setInterval(async () => {
         var scrollHeight = document.body.scrollHeight;
         window.scrollBy(0, distance);
@@ -39,7 +42,7 @@ async function scrollToTop(page) {
     await new Promise((resolve, reject) => {
       var totalHeight = document.body.scrollHeight;
       var distance = 120;
-      const intervalTime = getRandomInterval(100, 500)
+      const intervalTime = getRandomInterval(100, 500);
 
       var timer = setInterval(async () => {
         window.scrollBy(0, -distance);
@@ -63,7 +66,7 @@ async function scrollToTop(page) {
 
 async function clickAd(page) {
   try {
-  await page.waitForSelector("iframe");
+    await page.waitForSelector("iframe");
 
     const frames = await page.frames();
     const googleAdsFrames = frames.filter(
@@ -287,15 +290,15 @@ function isLinkInDomain(link, domain) {
 }
 
 function shuffleArray(array) {
- try {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+  try {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  } catch (e) {
+    console.log(e);
   }
-  return array;
- }catch(e) {
-  console.log(e)
- }
 }
 
 async function searchBing(page, searchTerm, url) {
@@ -458,18 +461,107 @@ async function performRandomClicks(page, numRandomClicks, numAdClicks) {
   }
 }
 
-
 async function getTimezoneByIP(ip) {
-    try {
-        const response = await axios.get(`https://ipinfo.io/${ip}/json`);
-        const { timezone } = response.data;
-        return timezone;
-    } catch (error) {
-        console.error("Error fetching timezone:", error);
-        return null;
-    }
+  try {
+    const response = await axios.get(
+      `https://api.findip.net/${ip}/?token=e3825358009f48238b2c721399679f96`
+    );
+    const timezone = response.data.location.time_zone;
+    return timezone;
+  } catch (error) {
+    console.error("Error fetching timezone:", error);
+    return null;
+  }
 }
 
+async function searchGoogleAndSaveKeywordCookies(page, searchTerm) {
+  try {
+    await page.goto("https://www.google.com");
+    await page.waitForSelector("textarea[name='q']");
+    await page.type("textarea[name='q']", searchTerm); // Replace with your search query
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(5000);
+
+    const searchResults = await page.evaluate(() => {
+      const results = Array.from(document.querySelectorAll(".tF2Cxc"));
+      return results.map((result) => result.querySelector("a").href);
+    });
+
+    // Shuffle the search results array
+    const shuffledResults = shuffleArray(searchResults);
+
+    // Visit a random selection of the first 6 search result URLs
+    const urlsToVisit = shuffledResults.slice(0, 1);
+
+    const allCookies = [];
+    for (const url of urlsToVisit) {
+      try {
+        await page.goto(url);
+        await page.waitForTimeout(5000);
+
+        // Gather cookies from each site
+        const cookies = await page.cookies();
+        allCookies.push(...cookies);
+      } catch (error) {
+        console.error("\x1b[31m%s\x1b[0m", error);
+      }
+    }
+    console.log(allCookies);
+    fs.writeFileSync("./src/cookies/cookies.json", JSON.stringify(allCookies));
+  } catch (error) {
+    console.error("\x1b[31m%s\x1b[0m", error);
+  }
+}
+
+async function getTimezoneFromProxy(proxyUrl) {
+  try {
+    const match = proxyUrl.match(/([^\/]+)@/);
+    let username;
+    let password;
+
+    if (match && match.length > 1) {
+      const proxyIdentifier = match[1];
+      const splitProxy = proxyIdentifier.split(':');
+      username = splitProxy[0]
+      password = splitProxy[1]
+    } else {
+      console.log("Proxy identifier not found in the URL.");
+    }
+
+
+    // Set proxy in axios configuration
+    const axiosInstance = axios.create({
+      proxy: {
+        host: 'gate.nodemaven.com',
+        port: 8080,
+      },
+      auth: {
+        password,
+        username
+      },
+    });
+
+    // Get the IP address associated with the proxy
+    const response = await axiosInstance.get(
+      "https://api.ipify.org?format=json"
+    );
+    console.log(response)
+    const ipAddress = response.data.ip;
+
+    // Get geolocation information based on IP address
+    const geo = geoip.lookup(ipAddress);
+    if (geo && geo.ll) {
+      // Determine the timezone using latitude and longitude
+      const timezone = tz.findTimeZone(geo.ll[0], geo.ll[1]);
+      return timezone.displayName;
+    } else {
+      throw new Error("Failed to determine geolocation information.");
+    }
+  } catch (error) {
+    console.error("Error getting timezone from proxy:", error);
+    throw error;
+  }
+}
 
 module.exports = {
   clickRandomLink,
@@ -484,5 +576,7 @@ module.exports = {
   searchGoogle,
   performRandomClicks,
   getRandomInterval,
-  getTimezoneByIP
+  getTimezoneByIP,
+  searchGoogleAndSaveKeywordCookies,
+  getTimezoneFromProxy,
 };

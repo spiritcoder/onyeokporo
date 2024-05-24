@@ -7,11 +7,12 @@ const {
   scrollToTop,
   performRandomClicks,
   getTimezoneByIP,
+  getTimezoneFromProxy
 } = require("../utils/functions.js");
 const loglogo = require("../utils/loglogo.js");
 const getTimeStamp = require("../utils/timestamp.js");
 const getRandomReferral = require("../utils/referral.js");
-const getProxies = require("./getwebshareproxy.js");
+const getProxies = require("./getnodemavenproxies.js");
 const getRandomAgent = require("../utils/randomAgent.js");
 
 puppeteer.use(StealthPlugin());
@@ -47,19 +48,15 @@ async function run(
   let regionProxies = await getProxies(region);
 
   for (const proxy of regionProxies) {
-    const ip = proxy.split(":")[0];
-    const port = proxy.split(":")[1];
-
-    const newProxy = await proxyChain.anonymizeProxy(
-      "http://" + ip + ":" + port
+    const newProxy = await proxyChain.anonymizeProxy(proxy
     );
 
     // get the timezone of the IP
-    const timezone = await getTimezoneByIP(ip);
-    console.log(
-      "\x1b[32m%s\x1b[0m",
-      `${getTimeStamp()} Got timezone ${timezone}`
-    );
+    // const timezone = await getTimezoneFromProxy(proxy);
+    // console.log(
+    //   "\x1b[32m%s\x1b[0m",
+    //   `${getTimeStamp()} Got timezone ${timezone}`
+    // );
 
     try {
       const browser = await puppeteer.launch({
@@ -83,10 +80,6 @@ async function run(
       if (pages.length > 1) {
         await pages[0].close();
       }
-      page.authenticate({
-        username: "vfrkigib",
-        password: "4uehmxjw6d0h",
-      });
 
       try {
         for (let i = 1; i <= 2; i++) {
@@ -97,7 +90,7 @@ async function run(
           );
           const userAgent = getRandomAgent(deviceType);
           await page.setUserAgent(userAgent);
-          await page.emulateTimezone(timezone);
+          // await page.emulateTimezone(timezone);
 
           console.log(
             "\x1b[32m%s\x1b[0m",
