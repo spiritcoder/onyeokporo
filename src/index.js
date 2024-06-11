@@ -21,6 +21,7 @@ router.get("/run", async (req, res) => {
   const trafficSource = req.query.trafficSource;
   const deviceType = req.query.deviceType;
   const channel = req.query.channel;
+  const numThreads = req.query.numThreads;
   if (channel == "axle") {
     axleRunner(
       addHttpsToUrl(url),
@@ -28,7 +29,8 @@ router.get("/run", async (req, res) => {
       randomClicks,
       numAdClicks,
       trafficSource,
-      deviceType
+      deviceType,
+      numThreads
     );
   } else if (channel == "webshare") {
     webshareRunner(
@@ -37,7 +39,8 @@ router.get("/run", async (req, res) => {
       randomClicks,
       numAdClicks,
       trafficSource,
-      deviceType
+      deviceType,
+      numThreads
     );
   }else {
     nodemavenRunner(
@@ -46,7 +49,8 @@ router.get("/run", async (req, res) => {
       randomClicks,
       numAdClicks,
       trafficSource,
-      deviceType
+      deviceType,
+      numThreads
     );
   }
   res.send(`Running: ${url} on webshare`);

@@ -1,133 +1,57 @@
-const puppeteer = require("puppeteer-extra");
-const StealthPlugin = require("puppeteer-extra-plugin-stealth");
-const proxyChain = require("proxy-chain");
+const { Worker } = require('worker_threads');
+const path = require('path');
 
-const {
-  scrollToBottom,
-  scrollToTop,
-  performRandomClicks,
-  getTimezoneByIP,
-  getTimezoneFromProxy
-} = require("../utils/functions.js");
-const loglogo = require("../utils/loglogo.js");
-const getTimeStamp = require("../utils/timestamp.js");
-const getRandomReferral = require("../utils/referral.js");
-const getProxies = require("./getnodemavenproxies.js");
-const getRandomAgent = require("../utils/randomAgent.js");
+// Main logic to manage worker threads
+async function main(url, region, randomClicks, numAdClicks, trafficSource, deviceType, numThreads) {
 
-puppeteer.use(StealthPlugin());
 
-async function run(
-  url,
-  region,
-  randomClicks = 10,
-  numAdClicks = 1,
-  trafficSource,
-  deviceType
-) {
-  loglogo();
+  const promises = [];
 
-  console.log(
-    "\x1b[32m%s\x1b[0m",
-    `${getTimeStamp()} Running traffics for ${region}`
-  );
-  console.log("\x1b[32m%s\x1b[0m", `${getTimeStamp()}For ${url} website`);
-  console.log(
-    "\x1b[32m%s\x1b[0m",
-    `${getTimeStamp()} With ${randomClicks} random clicks`
-  );
-  console.log(
-    "\x1b[32m%s\x1b[0m",
-    `${getTimeStamp()}, ${numAdClicks} ad clicks`
-  );
+  // Create worker threads
+  for (let i = 0; i < numThreads; i++) {
 
-  console.log(
-    "\x1b[32m%s\x1b[0m",
-    `${getTimeStamp()}, And ${deviceType} devices`
-  );
-  let regionProxies = await getProxies(region);
+    const workerPath = path.join(__dirname, 'nodemavenworker.js');
 
-  for (const proxy of regionProxies) {
-    const newProxy = await proxyChain.anonymizeProxy(proxy
-    );
-
-    // get the timezone of the IP
-    // const timezone = await getTimezoneFromProxy(proxy);
-    // console.log(
-    //   "\x1b[32m%s\x1b[0m",
-    //   `${getTimeStamp()} Got timezone ${timezone}`
-    // );
-
-    try {
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          `--proxy-server=${newProxy}`,
-          "--no-sandbox",
-          "--disable-web-security",
-          "--disable-features=IsolateOrigins",
-          "--disable-site-isolation-trials",
-          "--disable-infobars",
-          "--disable-gpu",
-          "--disable-software-rasterizer",
-          "--start-maximized",
-        ],
-        // executablePath: '/usr/bin/google-chrome',
-      });
-      const page = await browser.newPage();
-
-      const pages = await browser.pages();
-      if (pages.length > 1) {
-        await pages[0].close();
+    const worker = new Worker(workerPath, {
+      workerData: {
+        url,
+        region,
+        randomClicks,
+        numAdClicks,
+        trafficSource,
+        deviceType
       }
+    });
 
-      try {
-        for (let i = 1; i <= 2; i++) {
-          const referer = getRandomReferral(trafficSource);
-          console.log(
-            "\x1b[32m%s\x1b[0m",
-            `${getTimeStamp()} Running the agent with ${referer} as referer`
-          );
-          const userAgent = getRandomAgent(deviceType);
-          await page.setUserAgent(userAgent);
-          // await page.emulateTimezone(timezone);
+    // Listen for messages from worker threads
+    worker.on('message', message => {
+      console.log(`Thread ${i + 1} finished with message: ${message}`);
+    });
 
-          console.log(
-            "\x1b[32m%s\x1b[0m",
-            `${getTimeStamp()} And ${userAgent} user agent`
-          );
-          await page.setExtraHTTPHeaders({
-            referer,
-            waitUntil: "domcontentloaded",
-          });
-          await page.goto(url);
+    // Handle errors from worker threads
+    worker.on('error', err => {
+      console.error(`Worker error: ${err}`);
+    });
 
-          await scrollToBottom(page);
-          await scrollToTop(page);
-          await performRandomClicks(page, randomClicks, numAdClicks);
-
-          console.log(
-            "\x1b[32m%s\x1b[0m",
-            `${getTimeStamp()} Done ${i} times `
-          );
-        }
-      } catch (error) {
-        console.error(
-          "\x1b[31m%s\x1b[0m",
-          `${getTimeStamp()} Error Processing new proxy: ${error.message}`
-        );
+    // Handle exit event from worker threads
+    worker.on('exit', code => {
+      if (code !== 0) {
+        console.error(`Worker stopped with exit code ${code}`);
       }
-      console.log("\x1b[32m%s\x1b[0m", `${getTimeStamp()} ${proxy} done`);
-      await browser.close();
-    } catch (error) {
-      console.error(
-        "\x1b[31m%s\x1b[0m",
-        `${getTimeStamp()} Error with browser: ${error.message}`
-      );
-    }
+    });
+
+    promises.push(worker);
   }
 
-  console.log("Done");
+  // Wait for all threads to complete
+  await Promise.all(promises.map(worker => {
+    return new Promise((resolve, reject) => {
+      worker.on('exit', resolve);
+      worker.on('error', reject);
+    });
+  }));
+
+  console.log('All threads have finished execution');
 }
 
-module.exports = run;
+module.exports = main;

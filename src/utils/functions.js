@@ -15,7 +15,7 @@ async function scrollToBottom(page) {
     await new Promise((resolve, reject) => {
       var totalHeight = 0;
       var distance = 100;
-      const intervalTime = getRandomInterval(200, 500);
+      const intervalTime = getRandomInterval(200, 1000);
       var timer = setInterval(async () => {
         var scrollHeight = document.body.scrollHeight;
         window.scrollBy(0, distance);
@@ -42,7 +42,7 @@ async function scrollToTop(page) {
     await new Promise((resolve, reject) => {
       var totalHeight = document.body.scrollHeight;
       var distance = 120;
-      const intervalTime = getRandomInterval(100, 500);
+      const intervalTime = getRandomInterval(100, 1000);
 
       var timer = setInterval(async () => {
         window.scrollBy(0, -distance);
@@ -199,10 +199,15 @@ async function clickRandomLinkAndAd(page) {
     const href = await link.evaluate((node) => node.getAttribute("href"));
     if (
       href &&
-      !href.includes("#") &&
-      !href.includes("about:blank") &&
-      !href.includes("javascript") &&
-      isLinkInDomain(href, page.url())
+      !href.toLowerCase().includes("#") &&
+      !href.toLowerCase().includes("about:blank") &&
+      !href.toLowerCase().includes("javascript") &&
+      isLinkInDomain(href, page.url()) &&
+      !href.toLowerCase().includes("contact-us") &&
+      !href.toLowerCase().includes("terms-condition") &&
+      !href.toLowerCase().includes(".jpg") &&
+      !href.toLowerCase().includes(".png") &&
+      !href.toLowerCase().includes("jpeg")
     ) {
       hrefArray.push(href);
     }
