@@ -22,27 +22,31 @@ async function run(
   randomClicks = 10,
   numAdClicks = 1,
   trafficSource,
-  deviceType
+  deviceType,
+  threadNumber,
+  isGoogleAd
 ) {
   loglogo();
 
+  const adType = isGoogleAd == "true" ? "Google Ads" : "Adsterra Ads";
   console.log(
     "\x1b[32m%s\x1b[0m",
-    `${getTimeStamp()} Running traffics for ${region}`
+    `ThreadNumber: ${threadNumber}
+    ${getTimeStamp()} Running traffics for ${region}`
   );
-  console.log("\x1b[32m%s\x1b[0m", `${getTimeStamp()}For ${url} website`);
+  console.log("\x1b[32m%s\x1b[0m", `ThreadNumber: ${threadNumber} ${getTimeStamp()}For ${url} website`);
   console.log(
     "\x1b[32m%s\x1b[0m",
-    `${getTimeStamp()} With ${randomClicks} random clicks`
+    `ThreadNumber: ${threadNumber} ${getTimeStamp()} With ${randomClicks} random clicks`
   );
   console.log(
     "\x1b[32m%s\x1b[0m",
-    `${getTimeStamp()}, ${numAdClicks} ad clicks`
+    `ThreadNumber: ${threadNumber} ${getTimeStamp()}, ${numAdClicks} ${adType} clicks`
   );
 
   console.log(
     "\x1b[32m%s\x1b[0m",
-    `${getTimeStamp()}, And ${deviceType} devices`
+    `ThreadNumber: ${threadNumber} ${getTimeStamp()}, And ${deviceType} devices`
   );
   let regionProxies = await getProxies(region);
 
@@ -77,7 +81,7 @@ async function run(
           const referer = getRandomReferral(trafficSource);
           console.log(
             "\x1b[32m%s\x1b[0m",
-            `${getTimeStamp()} Running the agent with ${referer} as referer`
+            `ThreadNumber: ${threadNumber} ${getTimeStamp()} Running the agent with ${referer} as referer`
           );
           const userAgent = getRandomAgent(deviceType);
           await page.setUserAgent(userAgent);
@@ -85,7 +89,7 @@ async function run(
 
           console.log(
             "\x1b[32m%s\x1b[0m",
-            `${getTimeStamp()} And ${userAgent} user agent`
+            `ThreadNumber: ${threadNumber} ${getTimeStamp()} And ${userAgent} user agent`
           );
           await page.setExtraHTTPHeaders({
             referer,
@@ -95,25 +99,25 @@ async function run(
 
           await scrollToBottom(page);
           await scrollToTop(page);
-          await performRandomClicks(page, randomClicks, numAdClicks);
+          await performRandomClicks(page, randomClicks, numAdClicks, isGoogleAd);
 
           console.log(
             "\x1b[32m%s\x1b[0m",
-            `${getTimeStamp()} Done ${i} times `
+            `ThreadNumber: ${threadNumber} ${getTimeStamp()} Done ${i} times `
           );
         }
       } catch (error) {
         console.error(
           "\x1b[31m%s\x1b[0m",
-          `${getTimeStamp()} Error Processing new proxy: ${error.message}`
+          `ThreadNumber: ${threadNumber} ${getTimeStamp()} Error Processing new proxy: ${error.message}`
         );
       }
-      console.log("\x1b[32m%s\x1b[0m", `${getTimeStamp()} ${proxy} done`);
+      console.log("\x1b[32m%s\x1b[0m", `ThreadNumber: ${threadNumber} ${getTimeStamp()} ${proxy} done`);
       await browser.close();
     } catch (error) {
       console.error(
         "\x1b[31m%s\x1b[0m",
-        `${getTimeStamp()} Error with browser: ${error.message}`
+        `ThreadNumber: ${threadNumber} ${getTimeStamp()} Error with browser: ${error.message}`
       );
     }
   }
@@ -122,9 +126,9 @@ async function run(
 }
 
 if (parentPort) {
-  const { url, region, randomClicks, numAdClicks, trafficSource, deviceType } =
+  const { url, region, randomClicks, numAdClicks, trafficSource, deviceType, threadNumber, isGoogleAd } =
     workerData;
-  run(url, region, randomClicks, numAdClicks, trafficSource, deviceType).catch(
+  run(url, region, randomClicks, numAdClicks, trafficSource, deviceType, threadNumber, isGoogleAd).catch(
     (err) => {
       console.error(err);
       process.exit(1);

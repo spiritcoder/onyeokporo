@@ -23,7 +23,8 @@ async function run(
   randomClicks = 10,
   numAdClicks = 1,
   trafficSource,
-  deviceType
+  deviceType,
+  isGoogleAd
 ) {
   loglogo();
 
@@ -111,7 +112,7 @@ async function run(
 
           await scrollToBottom(page);
           await scrollToTop(page);
-          await performRandomClicks(page, randomClicks, numAdClicks);
+          await performRandomClicks(page, randomClicks, numAdClicks,isGoogleAd);
 
           console.log(
             "\x1b[32m%s\x1b[0m",

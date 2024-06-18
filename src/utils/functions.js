@@ -146,7 +146,14 @@ async function clickRandomLink(page) {
       !href.includes("about:blank") &&
       !href.includes("javascript") &&
       !href.includes("/author") &&
-      isLinkInDomain(href, page.url())
+      isLinkInDomain(href, page.url()) &&
+      !href.toLowerCase().includes("contact-us") &&
+      !href.toLowerCase().includes("terms-condition") &&
+      !href.toLowerCase().includes(".jpg") &&
+      !href.toLowerCase().includes(".png") &&
+      !href.toLowerCase().includes("jpeg") &&
+      !href.toLowerCase().includes("/author/") &&
+      !href.toLowerCase().includes("/category/")
     ) {
       hrefArray.push(href);
     }
@@ -190,7 +197,7 @@ async function clickRandomLink(page) {
   }
 }
 
-async function clickRandomLinkAndAd(page) {
+async function clickRandomLinkAndGoogleAd(page) {
   await page.waitForSelector("a");
 
   const links = await page.$$("a");
@@ -207,7 +214,9 @@ async function clickRandomLinkAndAd(page) {
       !href.toLowerCase().includes("terms-condition") &&
       !href.toLowerCase().includes(".jpg") &&
       !href.toLowerCase().includes(".png") &&
-      !href.toLowerCase().includes("jpeg")
+      !href.toLowerCase().includes("jpeg") &&
+      !href.toLowerCase().includes("/author/") &&
+      !href.toLowerCase().includes("/category/")
     ) {
       hrefArray.push(href);
     }
@@ -249,6 +258,136 @@ async function clickRandomLinkAndAd(page) {
     }
   } else {
     console.log(`${getTimeStamp()} no links found on the page.`);
+  }
+}
+
+async function clickRandomLinkAndAdsterraAd(page) {
+  await page.waitForSelector("a");
+
+  const links = await page.$$("a");
+  const hrefArray = [];
+  for (const link of links) {
+    const href = await link.evaluate((node) => node.getAttribute("href"));
+    if (
+      href &&
+      !href.toLowerCase().includes("#") &&
+      !href.toLowerCase().includes("about:blank") &&
+      !href.toLowerCase().includes("javascript") &&
+      isLinkInDomain(href, page.url()) &&
+      !href.toLowerCase().includes("contact-us") &&
+      !href.toLowerCase().includes("terms-condition") &&
+      !href.toLowerCase().includes(".jpg") &&
+      !href.toLowerCase().includes(".png") &&
+      !href.toLowerCase().includes("jpeg") &&
+      !href.toLowerCase().includes("/author/") &&
+      !href.toLowerCase().includes("/category/")
+    ) {
+      hrefArray.push(href);
+    }
+  }
+
+  if (hrefArray.length > 0) {
+    const filteredLinks = hrefArray.filter((href) => !href.includes("#"));
+
+    if (filteredLinks.length > 0) {
+      const randomIndex = Math.floor(Math.random() * filteredLinks.length);
+      const randomLink = filteredLinks[randomIndex];
+
+      try {
+        await Promise.all([
+          page.waitForNavigation(),
+          page.evaluate((href) => {
+            window.location.href = href;
+          }, randomLink),
+        ]);
+        await page.waitForTimeout(10000);
+        await scrollToBottom(page);
+        await clickAdsterraAd(page);
+        if (!page.isClosed()) {
+          await page.goBack();
+        }
+        await scrollToTop(page);
+        console.log(
+          "\x1b[32m%s\x1b[0m",
+          `${getTimeStamp()} Clicked on a random link: ${randomLink}`
+        );
+      } catch (error) {
+        console.log(
+          "\x1b[31m%s\x1b[0m",
+          `${getTimeStamp()} Error clicking the random link: ${randomLink}`
+        );
+      }
+    } else {
+      console.log(`${getTimeStamp()} no links without '#' found on the page.`);
+    }
+  } else {
+    console.log(`${getTimeStamp()} no links found on the page.`);
+  }
+}
+
+async function clickAdsterraAd(page) {
+  try {
+    await page.waitForSelector("iframe");
+
+    const frames = await page.frames();
+    const adsterraFrames = frames.filter(
+      (frame) => frame.url() == "about:blank"
+    );
+    
+    if (adsterraFrames.length > 0) {
+      try {
+        const randomIndex = 0;
+        const adFrame = adsterraFrames[randomIndex];
+
+        const adLinks = await adFrame.$$("a");
+
+        if (adLinks.length > 0) {
+          const randomIndex = Math.floor(Math.random() * adLinks.length);
+          const randomAdLink = adLinks[randomIndex];
+
+          const href = await adFrame.evaluate(
+            (element) => element.getAttribute("href"),
+            randomAdLink
+          );
+
+          if (href) {
+            await page.goto(href, { waitUntil: "domcontentloaded" });
+            console.log(
+              "\x1b[32m%s\x1b[0m",
+              `${getTimeStamp()} 😎😎😎😎 Successfully navigated to the Adsterra link...`
+            );
+            await scrollToBottom(page);
+            await page.waitForTimeout(5000);
+
+            await page.goBack();
+          } else {
+            console.log(
+              "\x1b[31m%s\x1b[0m",
+              `${getTimeStamp()} Failed to extract the href attribute of the adsterra link...`
+            );
+          }
+        } else {
+          console.log(
+            `${getTimeStamp()} No Adsterra Ads links found inside the iframe.`
+          );
+        }
+      } catch (clickError) {
+        console.error(
+          "\x1b[31m%s\x1b[0m",
+          `${getTimeStamp()} Error occurred while interacting with the Adsterra link:`,
+          clickError.message
+        );
+      }
+    } else {
+      console.log(`${getTimeStamp()} No Adsterra Ads frames found.`);
+    }
+
+  } catch (error) {
+    console.error(
+      "\x1b[31m%s\x1b[0m",
+      `${getTimeStamp()} Error occurred:`,
+      error.message
+    );
   }
 }
 
@@ -441,7 +580,7 @@ async function findAndClickGoogleLink(page, url) {
   return false;
 }
 
-async function performRandomClicks(page, numRandomClicks, numAdClicks) {
+async function performRandomClicks(page, numRandomClicks, numAdClicks, isGoogleAd) {
   const functions = [];
 
   // Add random click function 'numRandomClicks' times
@@ -451,7 +590,11 @@ async function performRandomClicks(page, numRandomClicks, numAdClicks) {
 
   // Add ad click function 'numAdClicks' times
   for (let i = 0; i < numAdClicks; i++) {
-    functions.push(() => clickRandomLinkAndAd(page));
+    if(isGoogleAd == "true"){
+      functions.push(() => clickRandomLinkAndGoogleAd(page));
+    }else{
+      functions.push(clickRandomLinkAndAdsterraAd(page))
+    }
   }
 
   // Shuffle the array of functions
@@ -526,23 +669,22 @@ async function getTimezoneFromProxy(proxyUrl) {
 
     if (match && match.length > 1) {
       const proxyIdentifier = match[1];
-      const splitProxy = proxyIdentifier.split(':');
-      username = splitProxy[0]
-      password = splitProxy[1]
+      const splitProxy = proxyIdentifier.split(":");
+      username = splitProxy[0];
+      password = splitProxy[1];
     } else {
       console.log("Proxy identifier not found in the URL.");
     }
 
-
     // Set proxy in axios configuration
     const axiosInstance = axios.create({
       proxy: {
-        host: 'gate.nodemaven.com',
+        host: "gate.nodemaven.com",
         port: 8080,
       },
       auth: {
         password,
-        username
+        username,
       },
     });
 
@@ -550,7 +692,7 @@ async function getTimezoneFromProxy(proxyUrl) {
     const response = await axiosInstance.get(
       "https://api.ipify.org?format=json"
     );
-    console.log(response)
+    console.log(response);
     const ipAddress = response.data.ip;
 
     // Get geolocation information based on IP address
@@ -570,11 +712,13 @@ async function getTimezoneFromProxy(proxyUrl) {
 
 module.exports = {
   clickRandomLink,
-  clickRandomLinkAndAd,
+  clickRandomLinkAndGoogleAd,
+  clickRandomLinkAndAdsterraAd,
   scrollToBottom,
   scrollToTop,
   pullProxies,
   clickAd,
+  clickAdsterraAd,
   addHttpsToUrl,
   shuffleArray,
   searchBing,

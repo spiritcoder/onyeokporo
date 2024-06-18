@@ -2,7 +2,7 @@ const { Worker } = require('worker_threads');
 const path = require('path');
 
 // Main logic to manage worker threads
-async function main(url, region, randomClicks, numAdClicks, trafficSource, deviceType, numThreads) {
+async function main(url, region, randomClicks, numAdClicks, trafficSource, deviceType, numThreads, isGoogleAd) {
 
 
   const promises = [];
@@ -19,7 +19,9 @@ async function main(url, region, randomClicks, numAdClicks, trafficSource, devic
         randomClicks,
         numAdClicks,
         trafficSource,
-        deviceType
+        deviceType,
+        threadNumber: i+1,
+        isGoogleAd
       }
     });
 
