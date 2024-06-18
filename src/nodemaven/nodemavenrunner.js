@@ -1,8 +1,11 @@
 const { Worker } = require('worker_threads');
 const path = require('path');
+const loglogo = require("../utils/loglogo.js");
+
 
 // Main logic to manage worker threads
 async function main(url, region, randomClicks, numAdClicks, trafficSource, deviceType, numThreads, isGoogleAd) {
+  loglogo();
 
 
   const promises = [];

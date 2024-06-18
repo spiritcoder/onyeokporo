@@ -8,7 +8,6 @@ const {
   scrollToTop,
   performRandomClicks,
 } = require("../utils/functions.js");
-const loglogo = require("../utils/loglogo.js");
 const getTimeStamp = require("../utils/timestamp.js");
 const getRandomReferral = require("../utils/referral.js");
 const getProxies = require("./getnodemavenproxies.js");
@@ -26,8 +25,6 @@ async function run(
   threadNumber,
   isGoogleAd
 ) {
-  loglogo();
-
   const adType = isGoogleAd == "true" ? "Google Ads" : "Adsterra Ads";
   console.log(
     "\x1b[32m%s\x1b[0m",
