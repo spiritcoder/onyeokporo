@@ -64,7 +64,7 @@ async function scrollToTop(page) {
   );
 }
 
-async function clickAd(page) {
+async function clickGoogleAd(page) {
   try {
     await page.waitForSelector("iframe");
 
@@ -238,7 +238,7 @@ async function clickRandomLinkAndGoogleAd(page) {
         ]);
         await page.waitForTimeout(10000);
         await scrollToBottom(page);
-        await clickAd(page);
+        await clickGoogleAd(page);
         if (!page.isClosed()) {
           await page.goBack();
         }
@@ -591,9 +591,9 @@ async function performRandomClicks(page, numRandomClicks, numAdClicks, isGoogleA
   // Add ad click function 'numAdClicks' times
   for (let i = 0; i < numAdClicks; i++) {
     if(isGoogleAd == "true"){
-      functions.push(() => clickRandomLinkAndGoogleAd(page));
+      functions.push(() => clickGoogleAd(page));
     }else{
-      functions.push(() => clickRandomLinkAndAdsterraAd(page))
+      functions.push(() => clickAdsterraAd(page))
     }
   }
 
@@ -717,7 +717,7 @@ module.exports = {
   scrollToBottom,
   scrollToTop,
   pullProxies,
-  clickAd,
+  clickGoogleAd,
   clickAdsterraAd,
   addHttpsToUrl,
   shuffleArray,
