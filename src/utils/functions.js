@@ -593,7 +593,7 @@ async function performRandomClicks(page, numRandomClicks, numAdClicks, isGoogleA
     if(isGoogleAd == "true"){
       functions.push(() => clickRandomLinkAndGoogleAd(page));
     }else{
-      functions.push(clickRandomLinkAndAdsterraAd(page))
+      functions.push(() => clickRandomLinkAndAdsterraAd(page))
     }
   }
 
