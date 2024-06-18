@@ -149,6 +149,7 @@ async function clickRandomLink(page) {
       isLinkInDomain(href, page.url()) &&
       !href.toLowerCase().includes("contact-us") &&
       !href.toLowerCase().includes("terms-condition") &&
+      !href.toLowerCase().includes("/privacy-policy") &&
       !href.toLowerCase().includes(".jpg") &&
       !href.toLowerCase().includes(".png") &&
       !href.toLowerCase().includes("jpeg") &&
@@ -212,6 +213,7 @@ async function clickRandomLinkAndGoogleAd(page) {
       isLinkInDomain(href, page.url()) &&
       !href.toLowerCase().includes("contact-us") &&
       !href.toLowerCase().includes("terms-condition") &&
+      !href.toLowerCase().includes("/privacy-policy") &&
       !href.toLowerCase().includes(".jpg") &&
       !href.toLowerCase().includes(".png") &&
       !href.toLowerCase().includes("jpeg") &&
@@ -276,6 +278,7 @@ async function clickRandomLinkAndAdsterraAd(page) {
       isLinkInDomain(href, page.url()) &&
       !href.toLowerCase().includes("contact-us") &&
       !href.toLowerCase().includes("terms-condition") &&
+      !href.toLowerCase().includes("/privacy-policy") &&
       !href.toLowerCase().includes(".jpg") &&
       !href.toLowerCase().includes(".png") &&
       !href.toLowerCase().includes("jpeg") &&
@@ -380,6 +383,72 @@ async function clickAdsterraAd(page) {
       }
     } else {
       console.log(`${getTimeStamp()} No Adsterra Ads frames found.`);
+    }
+
+  } catch (error) {
+    console.error(
+      "\x1b[31m%s\x1b[0m",
+      `${getTimeStamp()} Error occurred:`,
+      error.message
+    );
+  }
+}
+
+async function clickAdxAd(page) {
+  try {
+    await page.waitForSelector("iframe");
+
+    const frames = await page.frames();
+    const adsterraFrames = frames.filter(
+      (frame) => frame.url() == "about:blank"
+    );
+    
+    if (adsterraFrames.length > 0) {
+      try {
+        const randomIndex = 0;
+        const adFrame = adsterraFrames[randomIndex];
+
+        const adLinks = await adFrame.$$("a");
+
+        if (adLinks.length > 0) {
+          const randomIndex = Math.floor(Math.random() * adLinks.length);
+          const randomAdLink = adLinks[randomIndex];
+
+          const href = await adFrame.evaluate(
+            (element) => element.getAttribute("href"),
+            randomAdLink
+          );
+
+          if (href) {
+            await page.goto(href, { waitUntil: "domcontentloaded" });
+            console.log(
+              "\x1b[32m%s\x1b[0m",
+              `${getTimeStamp()} 😎😎😎😎 Successfully navigated to the Google ADX link...`
+            );
+            await scrollToBottom(page);
+            await page.waitForTimeout(5000);
+
+            await page.goBack();
+          } else {
+            console.log(
+              "\x1b[31m%s\x1b[0m",
+              `${getTimeStamp()} Failed to extract the href attribute of the Google ADX link...`
+            );
+          }
+        } else {
+          console.log(
+            `${getTimeStamp()} No Google ADX Ads links found inside the iframe.`
+          );
+        }
+      } catch (clickError) {
+        console.error(
+          "\x1b[31m%s\x1b[0m",
+          `${getTimeStamp()} Error occurred while interacting with the Google ADX link:`,
+          clickError.message
+        );
+      }
+    } else {
+      console.log(`${getTimeStamp()} No Google ADX Ads frames found.`);
     }
 
   } catch (error) {
@@ -592,6 +661,7 @@ async function performRandomClicks(page, numRandomClicks, numAdClicks, isGoogleA
   for (let i = 0; i < numAdClicks; i++) {
     if(isGoogleAd == "true"){
       functions.push(() => clickGoogleAd(page));
+      functions.push(() => clickAdxAd(page));
     }else{
       functions.push(() => clickAdsterraAd(page))
     }
@@ -718,6 +788,7 @@ module.exports = {
   scrollToTop,
   pullProxies,
   clickGoogleAd,
+  clickAdxAd,
   clickAdsterraAd,
   addHttpsToUrl,
   shuffleArray,

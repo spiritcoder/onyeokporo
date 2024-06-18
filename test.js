@@ -33,7 +33,7 @@ async function runTest() {
       await page.setExtraHTTPHeaders({
         waitUntil: "domcontentloaded",
       });
-      await page.goto("https://moneywisehacks.com/what-is-a-money-market-fund-how-to-invest-pros-cons-more/");
+      await page.goto("https://toplistranker.com/university-of-london-goldsmiths-scholarships-2024-uk/");
       await clickAdsterraAd(page);
       await page.waitForTimeout(5000);
 }
