@@ -10,7 +10,7 @@ const {
 } = require("../utils/functions.js");
 const getTimeStamp = require("../utils/timestamp.js");
 const getRandomReferral = require("../utils/referral.js");
-const getProxies = require("./getnodemavenproxies.js");
+const getProxies = require("./getpacketstreamproxies.js");
 const getRandomAgent = require("../utils/randomAgent.js");
 
 puppeteer.use(StealthPlugin());
@@ -31,7 +31,7 @@ async function run(
     `ThreadNumber: ${threadNumber}
     ${getTimeStamp()} Running traffics for ${region}`
   );
-  console.log("\x1b[32m%s\x1b[0m", `ThreadNumber: ${threadNumber} ${getTimeStamp()}For ${url} website`);
+  console.log("\x1b[32m%s\x1b[0m", `ThreadNumber: ${threadNumber} ${getTimeStamp()} For ${url} website`);
   console.log(
     "\x1b[32m%s\x1b[0m",
     `ThreadNumber: ${threadNumber} ${getTimeStamp()} With ${randomClicks} random clicks`

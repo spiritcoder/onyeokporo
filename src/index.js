@@ -5,6 +5,7 @@ const router = express.Router();
 const webshareRunner = require("./webshare/websharerunner");
 const axleRunner = require("./axle/axlerunner");
 const nodemavenRunner = require("./nodemaven/nodemavenrunner");
+const packetstreamRunner = require("./packetstream/packetstreamrunner")
 
 const { addHttpsToUrl } = require("./utils/functions");
 const getTimeStamp = require("./utils/timestamp");
@@ -45,7 +46,7 @@ router.get("/run", async (req, res) => {
       numThreads,
       isGoogleAd
     );
-  }else {
+  }else if (channel == "nodemaven"){
     nodemavenRunner(
       addHttpsToUrl(url),
       region,
@@ -56,8 +57,19 @@ router.get("/run", async (req, res) => {
       numThreads,
       isGoogleAd
     );
+  }else {
+    packetstreamRunner(
+      addHttpsToUrl(url),
+      region,
+      randomClicks,
+      numAdClicks,
+      trafficSource,
+      deviceType,
+      numThreads,
+      isGoogleAd
+    );
   }
-  res.send(`Running: ${url} on webshare`);
+  res.send(`Running: ${url} on ${channel}`);
 });
 
 app.use("/", router);
