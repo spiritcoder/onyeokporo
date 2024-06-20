@@ -15,8 +15,6 @@ async function getProxies(region) {
       regionProxies = proxies.flatMap((region) => Object.values(region).flat());
     }
   }
-  regionProxies = regionProxies.map((proxy) => "http://" + proxy);
-  console.log(regionProxies)
 
   return shuffleArray(regionProxies);
 }

@@ -31,7 +31,10 @@ async function run(
     `ThreadNumber: ${threadNumber}
     ${getTimeStamp()} Running traffics for ${region}`
   );
-  console.log("\x1b[32m%s\x1b[0m", `ThreadNumber: ${threadNumber} ${getTimeStamp()} For ${url} website`);
+  console.log(
+    "\x1b[32m%s\x1b[0m",
+    `ThreadNumber: ${threadNumber} ${getTimeStamp()} For ${url} website`
+  );
   console.log(
     "\x1b[32m%s\x1b[0m",
     `ThreadNumber: ${threadNumber} ${getTimeStamp()} With ${randomClicks} random clicks`
@@ -48,9 +51,11 @@ async function run(
   let regionProxies = await getProxies(region);
 
   for (const proxy of regionProxies) {
-    const newProxy = await proxyChain.anonymizeProxy(proxy);
-
     try {
+      const [username, password, host, port] = proxy.split(":");
+      const newProxy = await proxyChain.anonymizeProxy(`http://${host}:${port}`);
+
+
       const browser = await puppeteer.launch({
         headless: true,
         args: [
@@ -64,14 +69,14 @@ async function run(
           "--disable-software-rasterizer",
           "--start-maximized",
         ],
-        // executablePath: '/usr/bin/google-chrome',
       });
-      const page = await browser.newPage();
 
+      const page = await browser.newPage();
       const pages = await browser.pages();
       if (pages.length > 1) {
         await pages[0].close();
       }
+      await page.authenticate({ username, password });
 
       try {
         for (let i = 1; i < 2; i++) {
@@ -96,7 +101,12 @@ async function run(
 
           await scrollToBottom(page);
           await scrollToTop(page);
-          await performRandomClicks(page, randomClicks, numAdClicks, isGoogleAd);
+          await performRandomClicks(
+            page,
+            randomClicks,
+            numAdClicks,
+            isGoogleAd
+          );
 
           console.log(
             "\x1b[32m%s\x1b[0m",
@@ -106,15 +116,22 @@ async function run(
       } catch (error) {
         console.error(
           "\x1b[31m%s\x1b[0m",
-          `ThreadNumber: ${threadNumber} ${getTimeStamp()} Error Processing new proxy: ${error.message}`
+          `ThreadNumber: ${threadNumber} ${getTimeStamp()} Error Processing new proxy: ${
+            error.message
+          }`
         );
       }
-      console.log("\x1b[32m%s\x1b[0m", `ThreadNumber: ${threadNumber} ${getTimeStamp()} ${proxy} done`);
+      console.log(
+        "\x1b[32m%s\x1b[0m",
+        `ThreadNumber: ${threadNumber} ${getTimeStamp()} done`
+      );
       await browser.close();
     } catch (error) {
       console.error(
         "\x1b[31m%s\x1b[0m",
-        `ThreadNumber: ${threadNumber} ${getTimeStamp()} Error with browser: ${error.message}`
+        `ThreadNumber: ${threadNumber} ${getTimeStamp()} Error with browser: ${
+          error.message
+        }`
       );
     }
   }
@@ -123,12 +140,27 @@ async function run(
 }
 
 if (parentPort) {
-  const { url, region, randomClicks, numAdClicks, trafficSource, deviceType, threadNumber, isGoogleAd } =
-    workerData;
-  run(url, region, randomClicks, numAdClicks, trafficSource, deviceType, threadNumber, isGoogleAd).catch(
-    (err) => {
-      console.error(err);
-      process.exit(1);
-    }
-  );
+  const {
+    url,
+    region,
+    randomClicks,
+    numAdClicks,
+    trafficSource,
+    deviceType,
+    threadNumber,
+    isGoogleAd,
+  } = workerData;
+  run(
+    url,
+    region,
+    randomClicks,
+    numAdClicks,
+    trafficSource,
+    deviceType,
+    threadNumber,
+    isGoogleAd
+  ).catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
 }
