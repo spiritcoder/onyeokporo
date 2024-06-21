@@ -6,7 +6,7 @@ const proxyChain = require("proxy-chain");
 
 puppeteer.use(StealthPlugin());
 
-const { clickAdsterraAd } = require("./src/utils/functions");
+const { clickAdsterraAd, clickAdxAd } = require("./src/utils/functions");
 
 async function runTest() {
   let regionProxies = await getProxies("all");
@@ -43,9 +43,9 @@ async function runTest() {
     waitUntil: "domcontentloaded",
   });
   await page.goto(
-    "https://toplistranker.com/university-of-london-goldsmiths-scholarships-2024-uk/"
+    "https://toplistranker.com/a-guide-to-understanding-financial-planning-for-retirement/"
   );
-  await clickAdsterraAd(page);
+  await clickAdxAd(page);
   await page.waitForTimeout(5000);
 }
 

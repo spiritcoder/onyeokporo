@@ -53,8 +53,9 @@ async function run(
   for (const proxy of regionProxies) {
     try {
       const [username, password, host, port] = proxy.split(":");
-      const newProxy = await proxyChain.anonymizeProxy(`http://${host}:${port}`);
-
+      const newProxy = await proxyChain.anonymizeProxy(
+        `http://${host}:${port}`
+      );
 
       const browser = await puppeteer.launch({
         headless: true,
@@ -79,40 +80,35 @@ async function run(
       await page.authenticate({ username, password });
 
       try {
-        for (let i = 1; i < 2; i++) {
-          const referer = getRandomReferral(trafficSource);
-          console.log(
-            "\x1b[32m%s\x1b[0m",
-            `ThreadNumber: ${threadNumber} ${getTimeStamp()} Running the agent with ${referer} as referer`
-          );
-          const userAgent = getRandomAgent(deviceType);
-          await page.setUserAgent(userAgent);
-          // await page.emulateTimezone(timezone);
+        // for (let i = 1; i < 2; i++) {
+        const referer = getRandomReferral(trafficSource);
+        console.log(
+          "\x1b[32m%s\x1b[0m",
+          `ThreadNumber: ${threadNumber} ${getTimeStamp()} Running the agent with ${referer} as referer`
+        );
+        const userAgent = getRandomAgent(deviceType);
+        await page.setUserAgent(userAgent);
+        // await page.emulateTimezone(timezone);
 
-          console.log(
-            "\x1b[32m%s\x1b[0m",
-            `ThreadNumber: ${threadNumber} ${getTimeStamp()} And ${userAgent} user agent`
-          );
-          await page.setExtraHTTPHeaders({
-            referer,
-            waitUntil: "domcontentloaded",
-          });
-          await page.goto(url);
+        console.log(
+          "\x1b[32m%s\x1b[0m",
+          `ThreadNumber: ${threadNumber} ${getTimeStamp()} And ${userAgent} user agent`
+        );
+        await page.setExtraHTTPHeaders({
+          referer,
+          waitUntil: "domcontentloaded",
+        });
+        await page.goto(url);
 
-          await scrollToBottom(page);
-          await scrollToTop(page);
-          await performRandomClicks(
-            page,
-            randomClicks,
-            numAdClicks,
-            isGoogleAd
-          );
+        await scrollToBottom(page);
+        await scrollToTop(page);
+        await performRandomClicks(page, randomClicks, numAdClicks, isGoogleAd);
 
-          console.log(
-            "\x1b[32m%s\x1b[0m",
-            `ThreadNumber: ${threadNumber} ${getTimeStamp()} Done ${i} times `
-          );
-        }
+        console.log(
+          "\x1b[32m%s\x1b[0m",
+          `ThreadNumber: ${threadNumber} ${getTimeStamp()} Done ${i} times `
+        );
+        // }
       } catch (error) {
         console.error(
           "\x1b[31m%s\x1b[0m",
@@ -123,7 +119,7 @@ async function run(
       }
       console.log(
         "\x1b[32m%s\x1b[0m",
-        `ThreadNumber: ${threadNumber} ${getTimeStamp()} done`
+        `ThreadNumber: ${threadNumber} ${getTimeStamp()} Done with proxy`
       );
       await browser.close();
     } catch (error) {
