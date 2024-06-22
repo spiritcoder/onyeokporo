@@ -10,7 +10,7 @@ const getRandomInterval = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-async function scrollToBottom(page) {
+async function scrollToBottom(page ) {
   await page.evaluate(async () => {
     await new Promise((resolve, reject) => {
       var totalHeight = 0;
@@ -138,6 +138,7 @@ async function clickRandomLink(page) {
   const links = await page.$$("a");
   const hrefArray = [];
 
+  const currentPageURL = new URL(page.url());
   for (const link of links) {
     const href = await link.evaluate((node) => node.getAttribute("href"));
     if (
@@ -154,7 +155,9 @@ async function clickRandomLink(page) {
       !href.toLowerCase().includes(".png") &&
       !href.toLowerCase().includes("jpeg") &&
       !href.toLowerCase().includes("/author/") &&
-      !href.toLowerCase().includes("/category/")
+      !href.toLowerCase().includes("/category/") &&
+      href !== `${currentPageURL.origin}/`&&
+      href !== `${currentPageURL.origin}`
     ) {
       hrefArray.push(href);
     }
