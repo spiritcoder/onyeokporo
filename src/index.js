@@ -2,10 +2,11 @@ const express = require("express");
 const bodyparser = require("body-parser");
 const router = express.Router();
 
-const webshareRunner = require("./webshare/websharerunner");
-const axleRunner = require("./axle/axlerunner");
-const nodemavenRunner = require("./nodemaven/nodemavenrunner");
-const packetstreamRunner = require("./packetstream/packetstreamrunner")
+const webshareRunner = require("./providers/webshare/websharerunner");
+const webshareResRunner = require("./providers/webshareRes/websharerunner");
+const axleRunner = require("./providers/axle/axlerunner");
+const nodemavenRunner = require("./providers/nodemaven/nodemavenrunner");
+const packetstreamRunner = require("./providers/packetstream/packetstreamrunner")
 
 const { addHttpsToUrl } = require("./utils/functions");
 const getTimeStamp = require("./utils/timestamp");
@@ -46,7 +47,18 @@ router.get("/run", async (req, res) => {
       numThreads,
       isGoogleAd
     );
-  }else if (channel == "nodemaven"){
+  } else if (channel == "webshareRes") {
+    webshareResRunner(
+      addHttpsToUrl(url),
+      region,
+      randomClicks,
+      numAdClicks,
+      trafficSource,
+      deviceType,
+      numThreads,
+      isGoogleAd
+    );
+  } else if (channel == "nodemaven"){
     nodemavenRunner(
       addHttpsToUrl(url),
       region,

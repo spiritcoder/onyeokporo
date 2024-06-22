@@ -1,5 +1,6 @@
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const randomUseragent = require("random-useragent");
 const proxyChain = require("proxy-chain");
 
 const {
@@ -7,12 +8,12 @@ const {
   scrollToTop,
   performRandomClicks,
   getTimezoneByIP,
-} = require("../utils/functions.js");
-const loglogo = require("../utils/loglogo.js");
-const getTimeStamp = require("../utils/timestamp.js");
-const getRandomReferral = require("../utils/referral.js");
-const getProxies = require("./getwebshareproxy.js");
-const getRandomAgent = require("../utils/randomAgent.js");
+} = require("../../utils/functions.js");
+const loglogo = require("../../utils/loglogo.js");
+const getTimeStamp = require("../../utils/timestamp.js");
+const getRandomReferral = require("../../utils/referral.js");
+const getProxies = require("./getaxleproxies.js");
+const getRandomAgent = require("../../utils/randomAgent.js");
 
 puppeteer.use(StealthPlugin());
 
@@ -48,8 +49,11 @@ async function run(
   let regionProxies = await getProxies(region);
 
   for (const proxy of regionProxies) {
-    const ip = proxy.split(":")[0];
-    const port = proxy.split(":")[1];
+    const splitProxy = proxy.split(":");
+    const ip = splitProxy[0];
+    const port = splitProxy[1];
+    const username = splitProxy[2];
+    const password = splitProxy[3];
 
     const newProxy = await proxyChain.anonymizeProxy(
       "http://" + ip + ":" + port
@@ -75,18 +79,14 @@ async function run(
           "--disable-gpu",
           "--disable-software-rasterizer",
           "--start-maximized",
+          `--timezone=${timezone}`,
         ],
         // executablePath: '/usr/bin/google-chrome',
       });
       const page = await browser.newPage();
-
-      const pages = await browser.pages();
-      if (pages.length > 1) {
-        await pages[0].close();
-      }
       page.authenticate({
-        username: "vfrkigib",
-        password: "4uehmxjw6d0h",
+        username,
+        password,
       });
 
       try {
@@ -112,7 +112,7 @@ async function run(
 
           await scrollToBottom(page);
           await scrollToTop(page);
-          await performRandomClicks(page, randomClicks, numAdClicks, isGoogleAd);
+          await performRandomClicks(page, randomClicks, numAdClicks,isGoogleAd);
 
           console.log(
             "\x1b[32m%s\x1b[0m",

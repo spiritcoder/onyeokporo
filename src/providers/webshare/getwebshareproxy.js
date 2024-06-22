@@ -1,5 +1,5 @@
-const { shuffleArray } = require("../utils/functions");
-const proxies = require("./axleproxies");
+const { shuffleArray } = require("../../utils/functions");
+const proxies = require("./webshareproxies");
 
 async function getProxies(region) {
   let regionProxies = [];

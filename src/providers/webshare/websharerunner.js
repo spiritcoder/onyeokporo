@@ -1,6 +1,6 @@
 const { Worker } = require('worker_threads');
 const path = require('path');
-const loglogo = require("../utils/loglogo.js");
+const loglogo = require("../../utils/loglogo.js");
 
 
 // Main logic to manage worker threads
@@ -13,7 +13,7 @@ async function main(url, region, randomClicks, numAdClicks, trafficSource, devic
   // Create worker threads
   for (let i = 0; i < numThreads; i++) {
 
-    const workerPath = path.join(__dirname, 'packetstreamworker.js');
+    const workerPath = path.join(__dirname, 'webshareworker.js');
 
     const worker = new Worker(workerPath, {
       workerData: {

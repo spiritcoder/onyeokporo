@@ -296,8 +296,11 @@ async function clickAdxAd(page) {
               `${getTimeStamp()} 😎😎😎😎 Successfully navigated to the Google ADX link...`
             );
             await scrollToBottom(page);
+            await scrollToTop(page);
             await page.waitForTimeout(5000);
+            await clickRandomLink(page);
 
+            await page.goBack();
             await page.goBack();
           } else {
             console.log(

@@ -1,4 +1,4 @@
-const { shuffleArray } = require("../utils/functions");
+const { shuffleArray } = require("../../utils/functions");
 const proxies = require("./webshareproxies");
 
 async function getProxies(region) {

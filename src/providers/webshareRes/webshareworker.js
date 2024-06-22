@@ -7,11 +7,13 @@ const {
   scrollToBottom,
   scrollToTop,
   performRandomClicks,
-} = require("../utils/functions.js");
-const getTimeStamp = require("../utils/timestamp.js");
-const getRandomReferral = require("../utils/referral.js");
-const getProxies = require("./getpacketstreamproxies.js");
-const getRandomAgent = require("../utils/randomAgent.js");
+  getTimezoneByIP,
+} = require("../../utils/functions.js");
+const loglogo = require("../../utils/loglogo.js");
+const getTimeStamp = require("../../utils/timestamp.js");
+const getRandomReferral = require("../../utils/referral.js");
+const getProxies = require("./getwebshareproxy.js");
+const getRandomAgent = require("../../utils/randomAgent.js");
 
 puppeteer.use(StealthPlugin());
 
@@ -33,7 +35,7 @@ async function run(
   );
   console.log(
     "\x1b[32m%s\x1b[0m",
-    `ThreadNumber: ${threadNumber} ${getTimeStamp()} For ${url} website`
+    `ThreadNumber: ${threadNumber} ${getTimeStamp()}For ${url} website`
   );
   console.log(
     "\x1b[32m%s\x1b[0m",
@@ -48,15 +50,23 @@ async function run(
     "\x1b[32m%s\x1b[0m",
     `ThreadNumber: ${threadNumber} ${getTimeStamp()}, And ${deviceType} devices`
   );
+
   let regionProxies = await getProxies(region);
 
   for (const proxy of regionProxies) {
-    try {
-      const [username, password, host, port] = proxy.split(":");
-      const newProxy = await proxyChain.anonymizeProxy(
-        `http://${host}:${port}`
-      );
+    const parts = proxy.split(':');
+    const proxyPort = `${parts[0]}:${parts[1]}`;
+    const username = parts[2];
+    const password = parts[3];
 
+    const newProxy = await proxyChain.anonymizeProxy(
+      "http://" + proxyPort
+    );
+
+    // get the timezone of the IP
+    // const timezone = await getTimezoneByIP(ip);
+
+    try {
       const browser = await puppeteer.launch({
         headless: true,
         args: [
@@ -70,45 +80,54 @@ async function run(
           "--disable-software-rasterizer",
           "--start-maximized",
         ],
+        // executablePath: '/usr/bin/google-chrome',
       });
-
       const page = await browser.newPage();
+
       const pages = await browser.pages();
       if (pages.length > 1) {
         await pages[0].close();
       }
-      await page.authenticate({ username, password });
+      page.authenticate({
+        username,
+        password,
+      });
 
       try {
-        // for (let i = 1; i < 2; i++) {
-        const referer = getRandomReferral(trafficSource);
-        console.log(
-          "\x1b[32m%s\x1b[0m",
-          `ThreadNumber: ${threadNumber} ${getTimeStamp()} Running the agent with ${referer} as referer`
-        );
-        const userAgent = getRandomAgent(deviceType);
-        await page.setUserAgent(userAgent);
-        // await page.emulateTimezone(timezone);
+        for (let i = 1; i <= 2; i++) {
+          const referer = getRandomReferral(trafficSource);
+          console.log(
+            "\x1b[32m%s\x1b[0m",
+            `ThreadNumber: ${threadNumber} ${getTimeStamp()} Running the agent with ${referer} as referer`
+          );
+          const userAgent = getRandomAgent(deviceType);
+          await page.setUserAgent(userAgent);
+          // await page.emulateTimezone(timezone);
 
-        console.log(
-          "\x1b[32m%s\x1b[0m",
-          `ThreadNumber: ${threadNumber} ${getTimeStamp()} And ${userAgent} user agent`
-        );
-        await page.setExtraHTTPHeaders({
-          referer,
-          waitUntil: "domcontentloaded",
-        });
-        await page.goto(url);
+          console.log(
+            "\x1b[32m%s\x1b[0m",
+            `ThreadNumber: ${threadNumber} ${getTimeStamp()} And ${userAgent} user agent`
+          );
+          await page.setExtraHTTPHeaders({
+            referer,
+            waitUntil: "domcontentloaded",
+          });
+          await page.goto(url);
 
-        await scrollToBottom(page);
-        await scrollToTop(page);
-        await performRandomClicks(page, randomClicks, numAdClicks, isGoogleAd);
+          await scrollToBottom(page);
+          await scrollToTop(page);
+          await performRandomClicks(
+            page,
+            randomClicks,
+            numAdClicks,
+            isGoogleAd
+          );
 
-        console.log(
-          "\x1b[32m%s\x1b[0m",
-          `ThreadNumber: ${threadNumber} ${getTimeStamp()} Done ${i} times `
-        );
-        // }
+          console.log(
+            "\x1b[32m%s\x1b[0m",
+            `ThreadNumber: ${threadNumber} ${getTimeStamp()} Done ${i} times `
+          );
+        }
       } catch (error) {
         console.error(
           "\x1b[31m%s\x1b[0m",
@@ -119,7 +138,7 @@ async function run(
       }
       console.log(
         "\x1b[32m%s\x1b[0m",
-        `ThreadNumber: ${threadNumber} ${getTimeStamp()} Done with proxy`
+        `ThreadNumber: ${threadNumber} ${getTimeStamp()} Done with Proxy`
       );
       await browser.close();
     } catch (error) {
