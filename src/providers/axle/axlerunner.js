@@ -97,12 +97,12 @@ async function run(
             `${getTimeStamp()} Running the agent with ${referer} as referer`
           );
           const userAgent = getRandomAgent(deviceType);
-          await page.setUserAgent(userAgent);
+          await page.setUserAgent(userAgent.agent);
           await page.emulateTimezone(timezone);
 
           console.log(
             "\x1b[32m%s\x1b[0m",
-            `${getTimeStamp()} And ${userAgent} user agent`
+            `${getTimeStamp()} And ${userAgent.agent} user agent`
           );
           await page.setExtraHTTPHeaders({
             referer,

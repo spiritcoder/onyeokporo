@@ -15,7 +15,7 @@ async function scrollToBottom(page ) {
     await new Promise((resolve, reject) => {
       var totalHeight = 0;
       var distance = 100;
-      const intervalTime = getRandomInterval(200, 1000);
+      const intervalTime = getRandomInterval(500, 1000);
       var timer = setInterval(async () => {
         var scrollHeight = document.body.scrollHeight;
         window.scrollBy(0, distance);
@@ -42,7 +42,7 @@ async function scrollToTop(page) {
     await new Promise((resolve, reject) => {
       var totalHeight = document.body.scrollHeight;
       var distance = 120;
-      const intervalTime = getRandomInterval(100, 1000);
+      const intervalTime = getRandomInterval(500, 1000);
 
       var timer = setInterval(async () => {
         window.scrollBy(0, -distance);
@@ -133,6 +133,12 @@ async function clickGoogleAd(page) {
 }
 
 async function clickRandomLink(page) {
+  // page.on('request', request => {
+  //   const headers = request.headers();
+  //   console.log('Request URL:', request.url());
+  //   console.log('Referer:', headers['referer']);
+  // });
+
   await page.waitForSelector("a");
 
   const links = await page.$$("a");
@@ -656,6 +662,148 @@ async function getTimezoneFromProxy(proxyUrl) {
   }
 }
 
+async function searchGoogleAndNavigate(searchTerm, page) {
+  try {
+    await page.goto("https://www.google.com", {
+      waitUntil: "load",
+      timeout: 0,
+    });
+    await checkAndClickButton(page, "L2AGLb");
+
+    await page.waitForSelector("textarea[name='q']");
+    await page.type("textarea[name='q']", searchTerm);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(getRandomInterval(2000, 5000));
+
+    const searchResults = await page.evaluate(() => {
+      const results = Array.from(document.querySelectorAll(".tF2Cxc a"));
+      return results.map((result) => result.href);
+    });
+
+    // Shuffle the search results array
+    const shuffledResults = shuffleArray(searchResults);
+
+    // Open up to 10 different links in new tabs
+    const urlsToVisit = shuffledResults.slice(0, 1);
+    const pages = [];
+    const browser = page.browser(); // Get the browser instance from the page
+
+    for (const url of urlsToVisit) {
+      const newPage = await browser.newPage();
+      pages.push(newPage);
+    }
+
+    // Navigate to each URL in the opened tabs
+    for (let i = 0; i < urlsToVisit.length; i++) {
+      const url = urlsToVisit[i];
+      const newPage = pages[i];
+      try {
+        await newPage.goto(url, { waitUntil: "load", timeout: 30000 });
+      } catch (error) {
+      }
+      // Introduce a short delay between each tab opening
+      await newPage.waitForTimeout(getRandomInterval(1000, 2000));
+    }
+
+    for (const tab of pages) {
+      try {
+        // Scroll up and down in the new tab
+        await scrollToBottom(tab);
+        await scrollToTop(tab);
+      } catch (error) {
+        console.error("\x1b[31m%s\x1b[0m", error);
+      }
+    }
+
+    // Close each of the tabs except one
+    while (pages.length > 1) {
+      const tab = pages.pop();
+      await tab.close();
+    }
+
+  } catch (error) {
+    console.error("\x1b[31m%s\x1b[0m", error);
+  }
+}
+
+async function checkAndClickButton(page, buttonId) {
+  
+  const buttonExists = await page.evaluate((buttonId) => {
+    const button = document.getElementById(buttonId);
+    return button !== null;
+  }, buttonId);
+
+  if (buttonExists) {
+    await page.click(`#${buttonId}`);
+  }
+}
+
+async function searchBingAndNavigate(searchTerm, page) {
+  try {
+    await page.goto("https://www.bing.com", {
+      waitUntil: "domcontentloaded",
+      timeout: 0,
+    });
+
+    await checkAndClickButton('bnp_btn_accept');
+
+    await page.waitForSelector("input[name='q']");
+    await page.type("input[name='q']", searchTerm);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(getRandomInterval(2000, 5000));
+
+    const searchResults = await page.evaluate(() => {
+      const results = Array.from(document.querySelectorAll(".b_algo h2 a"));
+      return results.map((result) => result.href);
+    });
+
+    // Shuffle the search results array
+    const shuffledResults = shuffleArray(searchResults);
+
+    // Open up to 5 different links in new tabs
+    const urlsToVisit = shuffledResults.slice(0, 5);
+    const pages = [];
+    const browser = page.browser(); // Get the browser instance from the page
+
+    for (const url of urlsToVisit) {
+      const newPage = await browser.newPage();
+      pages.push(newPage);
+    }
+
+    // Navigate to each URL in the opened tabs
+    for (let i = 0; i < urlsToVisit.length; i++) {
+      const url = urlsToVisit[i];
+      const newPage = pages[i];
+      try {
+        await newPage.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
+      } catch (error) {
+        console.error("Error navigating to URL:", error);
+      }
+      // Introduce a short delay between each tab opening
+      await newPage.waitForTimeout(getRandomInterval(1000, 2000));
+    }
+
+    // Perform scrolling in each tab
+    for (const tab of pages) {
+      try {
+        await scrollToBottom(tab);
+        await scrollToTop(tab);
+      } catch (error) {
+        console.error("\x1b[31m%s\x1b[0m", "Error scrolling:", error);
+      }
+    }
+
+    // Close each of the tabs except one
+    while (pages.length > 1) {
+      const tab = pages.pop();
+      await tab.close();
+    }
+
+  } catch (error) {
+    console.error("\x1b[31m%s\x1b[0m", "Error in searchBingAndNavigate:", error);
+  }
+}
+
 module.exports = {
   clickRandomLink,
   scrollToBottom,
@@ -667,7 +815,9 @@ module.exports = {
   addHttpsToUrl,
   shuffleArray,
   searchBing,
+  searchBingAndNavigate,
   searchGoogle,
+  searchGoogleAndNavigate,
   performRandomClicks,
   getRandomInterval,
   getTimezoneByIP,

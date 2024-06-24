@@ -7,6 +7,7 @@ const webshareResRunner = require("./providers/webshareRes/websharerunner");
 const axleRunner = require("./providers/axle/axlerunner");
 const nodemavenRunner = require("./providers/nodemaven/nodemavenrunner");
 const packetstreamRunner = require("./providers/packetstream/packetstreamrunner")
+const ip2worldrunner = require("./providers/ip2world/ip2worldrunner")
 
 const { addHttpsToUrl } = require("./utils/functions");
 const getTimeStamp = require("./utils/timestamp");
@@ -60,6 +61,17 @@ router.get("/run", async (req, res) => {
     );
   } else if (channel == "nodemaven"){
     nodemavenRunner(
+      addHttpsToUrl(url),
+      region,
+      randomClicks,
+      numAdClicks,
+      trafficSource,
+      deviceType,
+      numThreads,
+      isGoogleAd
+    );
+  }else if (channel == "ip2world"){
+    ip2worldrunner(
       addHttpsToUrl(url),
       region,
       randomClicks,

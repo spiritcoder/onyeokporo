@@ -1,6 +1,6 @@
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
-const getProxies = require("./src/packetstream/getpacketstreamproxies");
+const getProxies = require("./src/providers/packetstream/getpacketstreamproxies");
 const proxyChain = require("proxy-chain");
 
 

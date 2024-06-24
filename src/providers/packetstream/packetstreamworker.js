@@ -7,6 +7,8 @@ const {
   scrollToBottom,
   scrollToTop,
   performRandomClicks,
+  searchGoogleAndNavigate,
+  searchBingAndNavigate,
 } = require("../../utils/functions.js");
 const getTimeStamp = require("../../utils/timestamp.js");
 const getRandomReferral = require("../../utils/referral.js");
@@ -58,7 +60,7 @@ async function run(
       );
 
       const browser = await puppeteer.launch({
-        headless: true,
+        headless: false,
         args: [
           `--proxy-server=${newProxy}`,
           "--no-sandbox",
@@ -70,6 +72,7 @@ async function run(
           "--disable-software-rasterizer",
           "--start-maximized",
         ],
+        executablePath: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`,
       });
 
       const page = await browser.newPage();
@@ -80,25 +83,32 @@ async function run(
       await page.authenticate({ username, password });
 
       try {
-        for (let i = 1; i <= 3; i++) {
+        for (let i = 1; i < 2; i++) {
           const referer = getRandomReferral(trafficSource);
           console.log(
             "\x1b[32m%s\x1b[0m",
             `ThreadNumber: ${threadNumber} ${getTimeStamp()} Running the agent with ${referer} as referer`
           );
           const userAgent = getRandomAgent(deviceType);
-          await page.setUserAgent(userAgent);
+          await page.setUserAgent(userAgent.agent);
           // await page.emulateTimezone(timezone);
+
+
+          await page.setViewport(userAgent.viewport);
 
           console.log(
             "\x1b[32m%s\x1b[0m",
-            `ThreadNumber: ${threadNumber} ${getTimeStamp()} And ${userAgent} user agent`
+            `ThreadNumber: ${threadNumber} ${getTimeStamp()} And ${userAgent.agent} user agent`
           );
           await page.setExtraHTTPHeaders({
             referer,
             waitUntil: "domcontentloaded",
           });
+
           await page.goto(url);
+
+          const cookies = await page.cookies();
+          console.log(cookies);
 
           await scrollToBottom(page);
           await scrollToTop(page);
