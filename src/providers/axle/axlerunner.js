@@ -112,7 +112,7 @@ async function run(
 
           await scrollToBottom(page);
           await scrollToTop(page);
-          await performRandomClicks(page, randomClicks, numAdClicks,isGoogleAd);
+          await performRandomClicks(page, randomClicks, numAdClicks,isGoogleAd, referer);
 
           console.log(
             "\x1b[32m%s\x1b[0m",

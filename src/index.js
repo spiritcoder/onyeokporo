@@ -7,6 +7,7 @@ const webshareResRunner = require("./providers/webshareRes/websharerunner");
 const axleRunner = require("./providers/axle/axlerunner");
 const nodemavenRunner = require("./providers/nodemaven/nodemavenrunner");
 const packetstreamRunner = require("./providers/packetstream/packetstreamrunner")
+const packetstreamRun = require("./providers/packetstream/packetstreamworker")
 const ip2worldrunner = require("./providers/ip2world/ip2worldrunner")
 
 const { addHttpsToUrl } = require("./utils/functions");
@@ -82,16 +83,30 @@ router.get("/run", async (req, res) => {
       isGoogleAd
     );
   }else {
-    packetstreamRunner(
-      addHttpsToUrl(url),
-      region,
-      randomClicks,
-      numAdClicks,
-      trafficSource,
-      deviceType,
-      numThreads,
-      isGoogleAd
-    );
+    if(numThreads == 1){
+      packetstreamRun(
+        addHttpsToUrl(url),
+        region,
+        randomClicks,
+        numAdClicks,
+        trafficSource,
+        deviceType,
+        0,
+        isGoogleAd
+      );
+    }
+    else{
+      packetstreamRunner(
+        addHttpsToUrl(url),
+        region,
+        randomClicks,
+        numAdClicks,
+        trafficSource,
+        deviceType,
+        numThreads,
+        isGoogleAd
+      );
+    }
   }
   res.send(`Running: ${url} on ${channel}`);
 });

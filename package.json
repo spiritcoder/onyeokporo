@@ -16,6 +16,7 @@
     "puppeteer": "^18.0.5",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "puppeteer-firefox": "^0.5.1",
     "random-seed": "^0.3.0",
     "random-useragent": "^0.5.0",
     "timezone-support": "^3.1.0",

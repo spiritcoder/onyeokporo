@@ -3,19 +3,18 @@ const fs = require("fs");
 const axios = require("axios");
 const getTimeStamp = require("../utils/timestamp");
 const geoip = require("geoip-lite");
-const ProxyAgent = require("proxy-agent");
 const tz = require("timezone-support");
 
 const getRandomInterval = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-async function scrollToBottom(page ) {
+async function scrollToBottom(page) {
   await page.evaluate(async () => {
     await new Promise((resolve, reject) => {
       var totalHeight = 0;
       var distance = 100;
-      const intervalTime = getRandomInterval(500, 1000);
+      const intervalTime = getRandomInterval(5000, 10000);
       var timer = setInterval(async () => {
         var scrollHeight = document.body.scrollHeight;
         window.scrollBy(0, distance);
@@ -42,7 +41,7 @@ async function scrollToTop(page) {
     await new Promise((resolve, reject) => {
       var totalHeight = document.body.scrollHeight;
       var distance = 120;
-      const intervalTime = getRandomInterval(500, 1000);
+      const intervalTime = getRandomInterval(5000, 10000);
 
       var timer = setInterval(async () => {
         window.scrollBy(0, -distance);
@@ -132,12 +131,7 @@ async function clickGoogleAd(page) {
   }
 }
 
-async function clickRandomLink(page) {
-  // page.on('request', request => {
-  //   const headers = request.headers();
-  //   console.log('Request URL:', request.url());
-  //   console.log('Referer:', headers['referer']);
-  // });
+async function clickRandomLink(page, referer) {
 
   await page.waitForSelector("a");
 
@@ -162,7 +156,7 @@ async function clickRandomLink(page) {
       !href.toLowerCase().includes("jpeg") &&
       !href.toLowerCase().includes("/author/") &&
       !href.toLowerCase().includes("/category/") &&
-      href !== `${currentPageURL.origin}/`&&
+      href !== `${currentPageURL.origin}/` &&
       href !== `${currentPageURL.origin}`
     ) {
       hrefArray.push(href);
@@ -179,9 +173,15 @@ async function clickRandomLink(page) {
       try {
         await Promise.all([
           page.waitForNavigation(),
-          page.evaluate((href) => {
-            window.location.href = href;
-          }, randomLink),
+          page.evaluate(
+            (href, refererLink) => {
+              const url = new URL(href);
+              url.searchParams.append("ref", refererLink);
+              window.location.href = url.toString();
+            },
+            randomLink,
+            referer
+          ),
         ]);
         await page.waitForTimeout(10000);
         await scrollToBottom(page);
@@ -215,7 +215,7 @@ async function clickAdsterraAd(page) {
     const adsterraFrames = frames.filter(
       (frame) => frame.url() == "about:blank"
     );
-    
+
     if (adsterraFrames.length > 0) {
       try {
         const randomIndex = 0;
@@ -263,7 +263,6 @@ async function clickAdsterraAd(page) {
     } else {
       console.log(`${getTimeStamp()} No Adsterra Ads frames found.`);
     }
-
   } catch (error) {
     console.error(
       "\x1b[31m%s\x1b[0m",
@@ -281,7 +280,7 @@ async function clickAdxAd(page) {
     const adsterraFrames = frames.filter(
       (frame) => frame.url() == "about:blank"
     );
-    
+
     if (adsterraFrames.length > 0) {
       try {
         const randomIndex = 0;
@@ -297,6 +296,9 @@ async function clickAdxAd(page) {
             (element) => element.getAttribute("href"),
             randomAdLink
           );
+          await scrollToBottom(page);
+          await scrollToTop(page);
+          await page.waitForTimeout(10000);
 
           if (href) {
             await page.goto(href, { waitUntil: "domcontentloaded" });
@@ -306,7 +308,7 @@ async function clickAdxAd(page) {
             );
             await scrollToBottom(page);
             await scrollToTop(page);
-            await page.waitForTimeout(5000);
+            await page.waitForTimeout(10000);
             await clickRandomLink(page);
 
             await page.goBack();
@@ -332,7 +334,6 @@ async function clickAdxAd(page) {
     } else {
       console.log(`${getTimeStamp()} No Google ADX Ads frames found.`);
     }
-
   } catch (error) {
     console.error(
       "\x1b[31m%s\x1b[0m",
@@ -531,21 +532,27 @@ async function findAndClickGoogleLink(page, url) {
   return false;
 }
 
-async function performRandomClicks(page, numRandomClicks, numAdClicks, isGoogleAd) {
+async function performRandomClicks(
+  page,
+  numRandomClicks,
+  numAdClicks,
+  isGoogleAd, 
+  referer
+) {
   const functions = [];
 
   // Add random click function 'numRandomClicks' times
   for (let i = 0; i < numRandomClicks; i++) {
-    functions.push(() => clickRandomLink(page));
+    functions.push(() => clickRandomLink(page, referer));
   }
 
   // Add ad click function 'numAdClicks' times
   for (let i = 0; i < numAdClicks; i++) {
-    if(isGoogleAd == "true"){
-      functions.push(() => clickGoogleAd(page));
+    if (isGoogleAd == "true") {
+      // functions.push(() => clickGoogleAd(page));
       functions.push(() => clickAdxAd(page));
-    }else{
-      functions.push(() => clickAdsterraAd(page))
+    } else {
+      functions.push(() => clickAdsterraAd(page));
     }
   }
 
@@ -699,8 +706,7 @@ async function searchGoogleAndNavigate(searchTerm, page) {
       const newPage = pages[i];
       try {
         await newPage.goto(url, { waitUntil: "load", timeout: 30000 });
-      } catch (error) {
-      }
+      } catch (error) {}
       // Introduce a short delay between each tab opening
       await newPage.waitForTimeout(getRandomInterval(1000, 2000));
     }
@@ -720,14 +726,12 @@ async function searchGoogleAndNavigate(searchTerm, page) {
       const tab = pages.pop();
       await tab.close();
     }
-
   } catch (error) {
     console.error("\x1b[31m%s\x1b[0m", error);
   }
 }
 
 async function checkAndClickButton(page, buttonId) {
-  
   const buttonExists = await page.evaluate((buttonId) => {
     const button = document.getElementById(buttonId);
     return button !== null;
@@ -745,7 +749,7 @@ async function searchBingAndNavigate(searchTerm, page) {
       timeout: 0,
     });
 
-    await checkAndClickButton('bnp_btn_accept');
+    await checkAndClickButton("bnp_btn_accept");
 
     await page.waitForSelector("input[name='q']");
     await page.type("input[name='q']", searchTerm);
@@ -775,7 +779,10 @@ async function searchBingAndNavigate(searchTerm, page) {
       const url = urlsToVisit[i];
       const newPage = pages[i];
       try {
-        await newPage.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
+        await newPage.goto(url, {
+          waitUntil: "domcontentloaded",
+          timeout: 30000,
+        });
       } catch (error) {
         console.error("Error navigating to URL:", error);
       }
@@ -798,9 +805,12 @@ async function searchBingAndNavigate(searchTerm, page) {
       const tab = pages.pop();
       await tab.close();
     }
-
   } catch (error) {
-    console.error("\x1b[31m%s\x1b[0m", "Error in searchBingAndNavigate:", error);
+    console.error(
+      "\x1b[31m%s\x1b[0m",
+      "Error in searchBingAndNavigate:",
+      error
+    );
   }
 }
 

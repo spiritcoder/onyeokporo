@@ -60,7 +60,7 @@ async function run(
       );
 
       const browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         args: [
           `--proxy-server=${newProxy}`,
           "--no-sandbox",
@@ -72,7 +72,8 @@ async function run(
           "--disable-software-rasterizer",
           "--start-maximized",
         ],
-        executablePath: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`,
+        // executablePath: `/Applications/Firefox.app/Contents/MacOS/firefox`,
+        // executablePath: `/Applications/Brave Browser.app/Contents/MacOS/Brave Browser`
       });
 
       const page = await browser.newPage();
@@ -93,12 +94,13 @@ async function run(
           await page.setUserAgent(userAgent.agent);
           // await page.emulateTimezone(timezone);
 
-
           await page.setViewport(userAgent.viewport);
 
           console.log(
             "\x1b[32m%s\x1b[0m",
-            `ThreadNumber: ${threadNumber} ${getTimeStamp()} And ${userAgent.agent} user agent`
+            `ThreadNumber: ${threadNumber} ${getTimeStamp()} And ${
+              userAgent.agent
+            } user agent`
           );
           await page.setExtraHTTPHeaders({
             referer,
@@ -107,16 +109,14 @@ async function run(
 
           await page.goto(url);
 
-          const cookies = await page.cookies();
-          console.log(cookies);
-
           await scrollToBottom(page);
           await scrollToTop(page);
           await performRandomClicks(
             page,
             randomClicks,
             numAdClicks,
-            isGoogleAd
+            isGoogleAd,
+            referer
           );
 
           console.log(
@@ -175,3 +175,4 @@ if (parentPort) {
     process.exit(1);
   });
 }
+module.exports = run;

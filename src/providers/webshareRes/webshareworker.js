@@ -120,7 +120,8 @@ async function run(
             page,
             randomClicks,
             numAdClicks,
-            isGoogleAd
+            isGoogleAd,
+            referer
           );
 
           console.log(
