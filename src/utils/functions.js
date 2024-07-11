@@ -14,7 +14,7 @@ async function scrollToBottom(page) {
     await new Promise((resolve, reject) => {
       var totalHeight = 0;
       var distance = 100;
-      const intervalTime = getRandomInterval(5000, 10000);
+      const intervalTime = getRandomInterval(5000, 8000);
       var timer = setInterval(async () => {
         var scrollHeight = document.body.scrollHeight;
         window.scrollBy(0, distance);
@@ -41,7 +41,7 @@ async function scrollToTop(page) {
     await new Promise((resolve, reject) => {
       var totalHeight = document.body.scrollHeight;
       var distance = 120;
-      const intervalTime = getRandomInterval(5000, 10000);
+      const intervalTime = getRandomInterval(5000, 8000);
 
       var timer = setInterval(async () => {
         window.scrollBy(0, -distance);
