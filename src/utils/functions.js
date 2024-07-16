@@ -549,7 +549,7 @@ async function performRandomClicks(
   // Add ad click function 'numAdClicks' times
   for (let i = 0; i < numAdClicks; i++) {
     if (isGoogleAd == "true") {
-      // functions.push(() => clickGoogleAd(page));
+      functions.push(() => clickGoogleAd(page));
       functions.push(() => clickAdxAd(page));
     } else {
       functions.push(() => clickAdsterraAd(page));
