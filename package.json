@@ -3,15 +3,25 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "axios": "^1.6.8",
     "body-parser": "^1.20.2",
     "cheerio": "^1.0.0-rc.12",
     "express": "^4.18.2",
+    "geoip-lite": "^1.4.10",
+    "hpagent": "^1.2.0",
+    "https-proxy-agent": "^7.0.4",
+    "node-fetch": "^2.7.0",
+    "proxy-agent": "^6.4.0",
     "proxy-chain": "^2.4.0",
     "puppeteer": "^18.0.5",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "puppeteer-firefox": "^0.5.1",
     "random-seed": "^0.3.0",
-    "random-useragent": "^0.5.0"
+    "random-useragent": "^0.5.0",
+    "timezone-support": "^3.1.0",
+    "user-agents": "^2.0.0-alpha.154",
+    "winston": "^3.12.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

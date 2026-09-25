@@ -1,13 +1,26 @@
-const fs = require("fs");
+const referrals = require("../referrals/referrals");
+const { shuffleArray } = require("./functions");
 
-function getRandomReferral() {
-  const referrals = fs
-    .readFileSync(__dirname + "/../referrals/referrals.txt", "utf-8")
-    .split("\n");
+function getRandomReferral(trafficSource) {
+  let source = [];
 
-  const referer = referrals[Math.floor(Math.random() * referrals.length)];
+  if (trafficSource == "all") {
+    source = referrals.flatMap((aSource) => Object.values(aSource).flat());
+  } else {
+    // region exists
+    source = referrals[0][trafficSource];
+
+    if (source.length < 1) {
+      source = referrals.flatMap((aSource) => Object.values(aSource).flat());
+    }
+  }
+
+  // shuffle proxies
+  source = shuffleArray(source);
+
+  const referer = source[Math.floor(Math.random() * referrals.length)];
 
   return referer;
 }
 
-module.exports = getRandomReferral
+module.exports = getRandomReferral;
